@@ -36,7 +36,7 @@ const navigation = [
   { name: "Preferences", icon: Heart, id: "preferences" },
   { name: "Shipments", icon: Truck, id: "shipments" },
   { name: "Marketing", icon: Mail, id: "marketing" },
-  { name: "Square Config", icon: Settings, id: "square-config" },
+  { name: "Club Setup", icon: Settings, id: "square-config" },
   { name: "Shipping Schedule", icon: Calendar, id: "shipping-schedule" },
   { name: "Embeddable Signup", icon: Code, id: "embeddable-signup" },
 ];
