@@ -374,7 +374,7 @@ export function PlansPage() {
                     Create Plan
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto mx-auto my-auto">
                   <DialogHeader>
                     <DialogTitle>Create New Subscription Plan</DialogTitle>
                     <DialogDescription>
@@ -505,7 +505,7 @@ export function PlansPage() {
 
               {/* Edit Plan Dialog */}
               <Dialog open={isEditPlanOpen} onOpenChange={setIsEditPlanOpen}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto mx-auto my-auto">
                   <DialogHeader>
                     <DialogTitle>Edit Subscription Plan</DialogTitle>
                     <DialogDescription>
@@ -777,7 +777,7 @@ export function PlansPage() {
                     Add Zone
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto mx-auto my-auto">
                   <DialogHeader>
                     <DialogTitle>Create New Shipping Zone</DialogTitle>
                     <DialogDescription>
@@ -832,7 +832,7 @@ export function PlansPage() {
 
               {/* Edit Shipping Zone Dialog */}
               <Dialog open={isEditShippingOpen} onOpenChange={setIsEditShippingOpen}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto mx-auto my-auto">
                   <DialogHeader>
                     <DialogTitle>Edit Shipping Zone</DialogTitle>
                     <DialogDescription>

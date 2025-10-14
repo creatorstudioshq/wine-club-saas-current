@@ -312,7 +312,7 @@ export function MembersPage() {
 
       {/* Edit Member Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[90vw] max-w-md h-auto max-h-[80vh] overflow-y-auto mx-auto my-auto">
           <DialogHeader>
             <DialogTitle>Edit Member</DialogTitle>
             <DialogDescription>

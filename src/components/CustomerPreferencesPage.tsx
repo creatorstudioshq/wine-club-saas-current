@@ -393,7 +393,7 @@ export function CustomerPreferencesPage() {
                     Create Global Preference
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="w-[90vw] max-w-2xl h-[80vh] max-h-[600px] overflow-y-auto mx-auto my-auto">
                   <DialogHeader>
                     <DialogTitle>Create Global Preference</DialogTitle>
                     <DialogDescription>
@@ -587,7 +587,7 @@ export function CustomerPreferencesPage() {
                     Assign Customer
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="w-[90vw] max-w-2xl h-[80vh] max-h-[600px] overflow-y-auto mx-auto my-auto">
                   <DialogHeader>
                     <DialogTitle>Assign Customer Preference</DialogTitle>
                     <DialogDescription>
