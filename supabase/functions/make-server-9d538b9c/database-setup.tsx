@@ -1,0 +1,166 @@
+import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
+
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+);
+
+// Wine Club SaaS Database Schema
+// This would be run via Supabase SQL Editor or migrations
+
+export const databaseSchema = `
+-- Enable RLS on all tables
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Wine Club Clients (Multi-tenant support)
+CREATE TABLE IF NOT EXISTS wine_clubs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  square_location_id VARCHAR(255),
+  square_access_token TEXT, -- Encrypted in production
+  branding_logo_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE wine_clubs ENABLE ROW LEVEL SECURITY;
+
+-- Subscription Plans
+CREATE TABLE IF NOT EXISTS subscription_plans (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  wine_club_id UUID NOT NULL REFERENCES wine_clubs(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL, -- Gold, Silver, Platinum
+  bottle_count INTEGER NOT NULL,
+  frequency VARCHAR(50) NOT NULL, -- monthly, bi-monthly
+  discount_percentage DECIMAL(5,2) DEFAULT 0, -- 10.00, 15.00, 20.00
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE subscription_plans ENABLE ROW LEVEL SECURITY;
+
+-- Members
+CREATE TABLE IF NOT EXISTS members (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  wine_club_id UUID NOT NULL REFERENCES wine_clubs(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  subscription_plan_id UUID REFERENCES subscription_plans(id),
+  square_customer_id VARCHAR(255), -- Square Customer ID
+  has_payment_method BOOLEAN DEFAULT FALSE,
+  status VARCHAR(50) DEFAULT 'active', -- active, paused, cancelled
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(wine_club_id, email)
+);
+
+ALTER TABLE members ENABLE ROW LEVEL SECURITY;
+
+-- Removed products table - we fetch live from Square API instead
+-- Only store Square Item IDs in shipment_items for assignments
+
+-- Shipments
+CREATE TABLE IF NOT EXISTS shipments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  wine_club_id UUID NOT NULL REFERENCES wine_clubs(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  ship_date DATE NOT NULL,
+  status VARCHAR(50) DEFAULT 'draft', -- draft, scheduled, shipped, delivered
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE shipments ENABLE ROW LEVEL SECURITY;
+
+-- Shipment Items (which Square wines go in which plan tier)
+CREATE TABLE IF NOT EXISTS shipment_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  shipment_id UUID NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
+  subscription_plan_id UUID NOT NULL REFERENCES subscription_plans(id) ON DELETE CASCADE,
+  square_item_id VARCHAR(255) NOT NULL, -- Store Square Item ID directly
+  square_variation_id VARCHAR(255), -- Store Square Variation ID for pricing
+  quantity INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE shipment_items ENABLE ROW LEVEL SECURITY;
+
+-- Member Wine Selections & Approvals
+CREATE TABLE IF NOT EXISTS member_selections (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  shipment_id UUID NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
+  approved_at TIMESTAMP WITH TIME ZONE,
+  delivery_date DATE,
+  wine_preferences JSONB, -- Store wine swaps, bonus items, etc.
+  approval_token UUID DEFAULT uuid_generate_v4(), -- For email/SMS approval links
+  status VARCHAR(50) DEFAULT 'pending', -- pending, approved, shipped
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(member_id, shipment_id)
+);
+
+ALTER TABLE member_selections ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+-- Wine Clubs: Users can only access their own wine club data
+CREATE POLICY "wine_clubs_policy" ON wine_clubs
+  FOR ALL USING (auth.uid()::text = id::text);
+
+-- All other tables: Filter by wine_club_id based on user's wine club association
+CREATE POLICY "subscription_plans_policy" ON subscription_plans
+  FOR ALL USING (wine_club_id IN (
+    SELECT id FROM wine_clubs WHERE auth.uid()::text = id::text
+  ));
+
+CREATE POLICY "members_policy" ON members
+  FOR ALL USING (wine_club_id IN (
+    SELECT id FROM wine_clubs WHERE auth.uid()::text = id::text
+  ));
+
+-- Removed products policy - no local products table
+
+CREATE POLICY "shipments_policy" ON shipments
+  FOR ALL USING (wine_club_id IN (
+    SELECT id FROM wine_clubs WHERE auth.uid()::text = id::text
+  ));
+
+CREATE POLICY "shipment_items_policy" ON shipment_items
+  FOR ALL USING (shipment_id IN (
+    SELECT id FROM shipments WHERE wine_club_id IN (
+      SELECT id FROM wine_clubs WHERE auth.uid()::text = id::text
+    )
+  ));
+
+CREATE POLICY "member_selections_policy" ON member_selections
+  FOR ALL USING (member_id IN (
+    SELECT id FROM members WHERE wine_club_id IN (
+      SELECT id FROM wine_clubs WHERE auth.uid()::text = id::text
+    )
+  ));
+
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_members_wine_club_id ON members(wine_club_id);
+CREATE INDEX IF NOT EXISTS idx_shipments_wine_club_id ON shipments(wine_club_id);
+CREATE INDEX IF NOT EXISTS idx_shipment_items_square_item_id ON shipment_items(square_item_id);
+CREATE INDEX IF NOT EXISTS idx_member_selections_approval_token ON member_selections(approval_token);
+CREATE INDEX IF NOT EXISTS idx_member_selections_member_id ON member_selections(member_id);
+`;
+
+// Insert sample data for King Frosch
+export const sampleData = `
+-- Insert King Frosch Wine Club
+INSERT INTO wine_clubs (id, name, email) VALUES 
+('550e8400-e29b-41d4-a716-446655440000', 'King Frosch Wine Club', 'admin@kingfrosch.com')
+ON CONFLICT (id) DO NOTHING;
+
+-- Insert Subscription Plans
+INSERT INTO subscription_plans (wine_club_id, name, bottle_count, frequency, discount_percentage) VALUES
+('550e8400-e29b-41d4-a716-446655440000', 'Gold', 3, 'monthly', 10.00),
+('550e8400-e29b-41d4-a716-446655440000', 'Silver', 6, 'monthly', 15.00),
+('550e8400-e29b-41d4-a716-446655440000', 'Platinum', 12, 'monthly', 20.00)
+ON CONFLICT DO NOTHING;
+`;
