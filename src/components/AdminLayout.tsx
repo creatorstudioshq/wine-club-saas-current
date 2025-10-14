@@ -38,6 +38,7 @@ const navigation = [
   { name: "Marketing", icon: Mail, id: "marketing" },
   { name: "Square Config", icon: Settings, id: "square-config" },
   { name: "Shipping Schedule", icon: Calendar, id: "shipping-schedule" },
+  { name: "Embeddable Signup", icon: Code, id: "embeddable-signup" },
 ];
 
 const mockClients = [
