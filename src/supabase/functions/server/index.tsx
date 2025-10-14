@@ -1,0 +1,455 @@
+import { Hono } from "npm:hono";
+import { cors } from "npm:hono/cors";
+import { logger } from "npm:hono/logger";
+import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
+import * as kv from "./kv_store.tsx";
+import squareLiveInventory from "./square-live-inventory.tsx";
+import envStatusRoutes from "./env-status.tsx";
+import { serverEnv } from "./env.tsx";
+
+const app = new Hono();
+
+// Initialize Supabase client
+const supabase = createClient(
+  serverEnv.SUPABASE_URL,
+  serverEnv.SUPABASE_SERVICE_ROLE_KEY,
+);
+
+// Enable logger
+app.use('*', logger(console.log));
+
+// Enable CORS for all routes and methods
+app.use(
+  "/*",
+  cors({
+    origin: "*",
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    exposeHeaders: ["Content-Length"],
+    maxAge: 600,
+  }),
+);
+
+// Health check endpoint
+app.get("/make-server-9d538b9c/health", (c) => {
+  return c.json({ status: "ok" });
+});
+
+// Wine Club Management Routes
+app.get("/make-server-9d538b9c/wine-clubs", async (c) => {
+  try {
+    const { data: wineClubs, error } = await supabase
+      .from('wine_clubs')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json({ wineClubs });
+  } catch (error) {
+    console.error('Get wine clubs error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Members Management
+app.get("/make-server-9d538b9c/members/:wineClubId", async (c) => {
+  try {
+    const wineClubId = c.req.param('wineClubId');
+    
+    const { data: members, error } = await supabase
+      .from('members')
+      .select(`
+        *,
+        subscription_plans(name, bottle_count, discount_percentage)
+      `)
+      .eq('wine_club_id', wineClubId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json({ members });
+  } catch (error) {
+    console.error('Get members error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+app.post("/make-server-9d538b9c/members", async (c) => {
+  try {
+    const memberData = await c.req.json();
+    
+    const { data: member, error } = await supabase
+      .from('members')
+      .insert(memberData)
+      .select()
+      .single();
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json({ member });
+  } catch (error) {
+    console.error('Create member error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Subscription Plans
+app.get("/make-server-9d538b9c/plans/:wineClubId", async (c) => {
+  try {
+    const wineClubId = c.req.param('wineClubId');
+    
+    const { data: plans, error } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .eq('wine_club_id', wineClubId)
+      .order('bottle_count', { ascending: true });
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json({ plans });
+  } catch (error) {
+    console.error('Get plans error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+app.post("/make-server-9d538b9c/plans", async (c) => {
+  try {
+    const planData = await c.req.json();
+    
+    const { data: plan, error } = await supabase
+      .from('subscription_plans')
+      .insert(planData)
+      .select()
+      .single();
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json({ plan });
+  } catch (error) {
+    console.error('Create plan error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Shipments
+app.get("/make-server-9d538b9c/shipments/:wineClubId", async (c) => {
+  try {
+    const wineClubId = c.req.param('wineClubId');
+    
+    const { data: shipments, error } = await supabase
+      .from('shipments')
+      .select(`
+        *,
+        shipment_items(
+          *,
+          subscription_plan:subscription_plans(name)
+        )
+      `)
+      .eq('wine_club_id', wineClubId)
+      .order('ship_date', { ascending: false });
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json({ shipments });
+  } catch (error) {
+    console.error('Get shipments error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+app.post("/make-server-9d538b9c/shipments", async (c) => {
+  try {
+    const { shipment, items } = await c.req.json();
+    
+    // Create shipment
+    const { data: newShipment, error: shipmentError } = await supabase
+      .from('shipments')
+      .insert(shipment)
+      .select()
+      .single();
+
+    if (shipmentError) {
+      return c.json({ error: shipmentError.message }, 500);
+    }
+
+    // Create shipment items
+    const itemsWithShipmentId = items.map((item: any) => ({
+      ...item,
+      shipment_id: newShipment.id
+    }));
+
+    const { data: newItems, error: itemsError } = await supabase
+      .from('shipment_items')
+      .insert(itemsWithShipmentId)
+      .select();
+
+    if (itemsError) {
+      return c.json({ error: itemsError.message }, 500);
+    }
+
+    return c.json({ shipment: newShipment, items: newItems });
+  } catch (error) {
+    console.error('Create shipment error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Customer approval workflow
+app.get("/make-server-9d538b9c/approval/:token", async (c) => {
+  try {
+    const token = c.req.param('token');
+    
+    const { data: selection, error } = await supabase
+      .from('member_selections')
+      .select(`
+        *,
+        member:members(*),
+        shipment:shipments(
+          *,
+          shipment_items(
+            *,
+            product:products(*),
+            subscription_plan:subscription_plans(*)
+          )
+        )
+      `)
+      .eq('approval_token', token)
+      .single();
+
+    if (error) {
+      return c.json({ error: "Invalid approval token" }, 404);
+    }
+
+    if (selection.status === 'approved') {
+      return c.json({ error: "Selection already approved" }, 400);
+    }
+
+    return c.json({ selection });
+  } catch (error) {
+    console.error('Get approval error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+app.post("/make-server-9d538b9c/approval/:token", async (c) => {
+  try {
+    const token = c.req.param('token');
+    const { approved, preferences, delivery_date } = await c.req.json();
+    
+    const updateData: any = {
+      status: approved ? 'approved' : 'rejected',
+      updated_at: new Date().toISOString()
+    };
+
+    if (approved) {
+      updateData.approved_at = new Date().toISOString();
+      updateData.delivery_date = delivery_date;
+      updateData.wine_preferences = preferences;
+    }
+
+    const { data: selection, error } = await supabase
+      .from('member_selections')
+      .update(updateData)
+      .eq('approval_token', token)
+      .select()
+      .single();
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json({ selection });
+  } catch (error) {
+    console.error('Update approval error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Customer Preferences Management Routes (stores only IDs and mappings)
+app.get("/make-server-9d538b9c/customer-preferences/:wine_club_id", async (c) => {
+  try {
+    const wineClubId = c.req.param('wine_club_id');
+    const preferences = await kv.getByPrefix(`preferences_${wineClubId}_`);
+    return c.json({ preferences: preferences || [] });
+  } catch (error) {
+    console.error('Error fetching customer preferences:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+app.post("/make-server-9d538b9c/customer-preferences", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { wine_club_id, customer_id, preference_type, category_preferences, custom_wine_assignments, notes } = body;
+    
+    const preferenceId = `preferences_${wine_club_id}_${customer_id}`;
+    const preference = {
+      id: preferenceId,
+      wine_club_id,
+      customer_id, // Square customer ID
+      preference_type,
+      category_preferences, // e.g. [{ category: "Red Wine", quantity: 3 }]
+      custom_wine_assignments, // Array of Square item IDs
+      notes,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    await kv.set(preferenceId, preference);
+    return c.json({ preference });
+  } catch (error) {
+    console.error('Error creating customer preference:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Club Shipments Management (stores only assignments and IDs)
+app.get("/make-server-9d538b9c/club-shipments/:wine_club_id", async (c) => {
+  try {
+    const wineClubId = c.req.param('wine_club_id');
+    const shipments = await kv.getByPrefix(`shipments_${wineClubId}_`);
+    return c.json({ shipments: shipments || [] });
+  } catch (error) {
+    console.error('Error fetching club shipments:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+app.post("/make-server-9d538b9c/club-shipments", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { wine_club_id, name, shipment_date, ship_date, wine_assignments, notes } = body;
+    
+    const shipmentId = `shipments_${wine_club_id}_${Date.now()}`;
+    const shipment = {
+      id: shipmentId,
+      wine_club_id,
+      name,
+      shipment_date,
+      ship_date,
+      status: 'draft',
+      wine_assignments, // Array of { customer_id, assigned_square_item_ids[] }
+      notes,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    await kv.set(shipmentId, shipment);
+    return c.json({ shipment });
+  } catch (error) {
+    console.error('Error creating club shipment:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Advanced Square API Routes (for future payment integration)
+import * as squareHelpers from "./square-helpers.tsx";
+
+// List all customers (for importing to wine club)
+app.get("/make-server-9d538b9c/square/customers", async (c) => {
+  try {
+    const result = await squareHelpers.listCustomers();
+    return c.json(result);
+  } catch (error) {
+    console.error('Error listing customers:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Get customer segments (Gold, Silver, Platinum tiers)
+app.get("/make-server-9d538b9c/square/segments", async (c) => {
+  try {
+    const result = await squareHelpers.listCustomerSegments();
+    return c.json(result);
+  } catch (error) {
+    console.error('Error listing segments:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Get specific segment
+app.get("/make-server-9d538b9c/square/segments/:segmentId", async (c) => {
+  try {
+    const segmentId = c.req.param('segmentId');
+    const result = await squareHelpers.getCustomerSegment(segmentId);
+    return c.json(result);
+  } catch (error) {
+    console.error('Error getting segment:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Create a wine club shipment order
+app.post("/make-server-9d538b9c/square/create-shipment", async (c) => {
+  try {
+    const shipmentData = await c.req.json();
+    const result = await squareHelpers.createWineClubShipment(shipmentData);
+    return c.json(result);
+  } catch (error) {
+    console.error('Error creating shipment:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Save card on file for customer
+app.post("/make-server-9d538b9c/square/save-card", async (c) => {
+  try {
+    const { customerId, sourceId } = await c.req.json();
+    const idempotencyKey = squareHelpers.generateIdempotencyKey();
+    const result = await squareHelpers.createCard(customerId, sourceId, idempotencyKey);
+    return c.json(result);
+  } catch (error) {
+    console.error('Error saving card:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Create order (without payment)
+app.post("/make-server-9d538b9c/square/create-order", async (c) => {
+  try {
+    const orderData = await c.req.json();
+    const result = await squareHelpers.createOrder({
+      ...orderData,
+      idempotencyKey: squareHelpers.generateIdempotencyKey(),
+    });
+    return c.json(result);
+  } catch (error) {
+    console.error('Error creating order:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Process payment
+app.post("/make-server-9d538b9c/square/create-payment", async (c) => {
+  try {
+    const paymentData = await c.req.json();
+    const result = await squareHelpers.createPayment({
+      ...paymentData,
+      idempotencyKey: squareHelpers.generateIdempotencyKey(),
+    });
+    return c.json(result);
+  } catch (error) {
+    console.error('Error creating payment:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Mount Square routes
+app.route("/", squareLiveInventory);
+app.route("/", envStatusRoutes);
+
+Deno.serve(app.fetch);
