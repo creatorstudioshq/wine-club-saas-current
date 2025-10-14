@@ -779,11 +779,10 @@ export function CustomerPreferencesPage() {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {availableCategories.map((category) => {
-                  const categoryUsage = preferences
-                    .filter(p => p.preference_type === 'category_based')
-                    .reduce((count, pref) => {
-                      return count + pref.category_preferences.filter(cp => cp.category === category).length;
-                    }, 0);
+                  // Count how many global preferences use this category
+                  const categoryUsage = globalPreferences.reduce((count, pref) => {
+                    return count + (pref.categories.includes(category) ? 1 : 0);
+                  }, 0);
 
                   return (
                     <Card key={category}>
