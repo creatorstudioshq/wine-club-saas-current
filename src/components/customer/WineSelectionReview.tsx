@@ -3,8 +3,11 @@ import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Alert, AlertDescription } from "../ui/alert";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { ArrowLeft, ArrowRight, RotateCcw, Wine, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCcw, Wine, ChevronRight, Plus, Minus, AlertTriangle } from "lucide-react";
 
 // This component represents the customer wine selection confirmation flow  
 // In the real system, wines would come from the admin's Shipment Builder assignments
@@ -18,6 +21,9 @@ const mockWineSelection = [
     vintage: "2021",
     type: "Red Wine",
     alcohol: "13.5%",
+    price: 37.95,
+    quantity: 1,
+    minQuantity: 1,
     image: "https://images.unsplash.com/photo-1586370434639-0fe43b2d32d6?w=400&h=600&fit=crop",
     tastingNotes: "Demo wine selection - in production this would show wines assigned by the wine club admin based on your preferences.",
     pairings: "Demo pairing - would contain real sommelier notes."
@@ -29,6 +35,9 @@ const mockWineSelection = [
     vintage: "2022",
     type: "White Wine", 
     alcohol: "12.5%",
+    price: 29.95,
+    quantity: 1,
+    minQuantity: 1,
     image: "https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=400&h=600&fit=crop",
     tastingNotes: "Crisp and refreshing with vibrant citrus flavors, tropical fruit notes, and a clean mineral finish. Shows classic Marlborough character with gooseberry and passion fruit.",
     pairings: "Excellent with seafood, light salads, goat cheese, or enjoyed as an aperitif."
@@ -40,6 +49,9 @@ const mockWineSelection = [
     vintage: "2017",
     type: "Red Wine",
     alcohol: "14.0%", 
+    price: 33.95,
+    quantity: 1,
+    minQuantity: 1,
     image: "https://images.unsplash.com/photo-1515779689357-8b5b7faecd84?w=400&h=600&fit=crop",
     tastingNotes: "Elegant and complex with aromas of red roses, tar, and truffle. The palate shows cherry, leather, and spice with firm tannins that soften with time.",
     pairings: "Ideal with truffle dishes, braised meats, mushroom risotto, or aged Parmigiano-Reggiano."
@@ -90,10 +102,36 @@ export function WineSelectionReview({ onNext }: WineSelectionReviewProps) {
   const handleSwap = (index: number, newWine: any) => {
     setSelectedWines(prev => {
       const updated = [...prev];
-      updated[index] = newWine;
+      updated[index] = { ...newWine, quantity: 1, minQuantity: 1 };
       return updated;
     });
     setSwapModalOpen(false);
+  };
+
+  const updateQuantity = (index: number, change: number) => {
+    setSelectedWines(prev => {
+      const updated = [...prev];
+      const wine = updated[index];
+      const newQuantity = wine.quantity + change;
+      
+      if (newQuantity >= wine.minQuantity && newQuantity <= 6) { // Max 6 bottles per wine
+        updated[index] = { ...wine, quantity: newQuantity };
+      }
+      
+      return updated;
+    });
+  };
+
+  const getTotalBottles = () => {
+    return selectedWines.reduce((total, wine) => total + wine.quantity, 0);
+  };
+
+  const getTotalPrice = () => {
+    return selectedWines.reduce((total, wine) => total + (wine.price * wine.quantity), 0);
+  };
+
+  const canProceed = () => {
+    return getTotalBottles() >= 3; // Minimum 3 bottles for shipment
   };
 
   return (
@@ -189,10 +227,38 @@ export function WineSelectionReview({ onNext }: WineSelectionReviewProps) {
                 </div>
 
                 <CardContent className="p-6 bg-white">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
                       <Badge variant="outline" className="mb-2">{wine.type}</Badge>
                       <p className="text-sm text-gray-600">Vintage {wine.vintage}</p>
+                      <p className="text-lg font-semibold text-gray-900">${wine.price}</p>
+                    </div>
+                    
+                    {/* Quantity Controls */}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateQuantity(index, -1)}
+                        disabled={wine.quantity <= wine.minQuantity}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-8 text-center font-medium">{wine.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateQuantity(index, 1)}
+                        disabled={wine.quantity >= 6}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                      Subtotal: ${(wine.price * wine.quantity).toFixed(2)}
                     </div>
                     <Dialog open={swapModalOpen && swapIndex === index} onOpenChange={(open) => {
                       setSwapModalOpen(open);
@@ -240,14 +306,52 @@ export function WineSelectionReview({ onNext }: WineSelectionReviewProps) {
           ))}
         </div>
 
-        {/* Confirmation Button */}
+        {/* Order Summary & Confirmation */}
         <div className="text-center">
+          {/* Order Summary */}
+          <Card className="max-w-md mx-auto mb-6 bg-white/80 backdrop-blur">
+            <CardContent className="p-6">
+              <h3 className="font-serif text-lg mb-4">Order Summary</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Total Bottles:</span>
+                  <span className="font-medium">{getTotalBottles()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span className="font-medium">${getTotalPrice().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-green-600">
+                  <span>Member Discount (15%):</span>
+                  <span className="font-medium">-${(getTotalPrice() * 0.15).toFixed(2)}</span>
+                </div>
+                <div className="border-t pt-2 mt-2">
+                  <div className="flex justify-between font-semibold">
+                    <span>Total:</span>
+                    <span>${(getTotalPrice() * 0.85).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Minimum Validation Alert */}
+          {!canProceed() && (
+            <Alert className="max-w-md mx-auto mb-6 border-amber-200 bg-amber-50">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                Minimum 3 bottles required for shipment. You currently have {getTotalBottles()} bottles.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Button 
             onClick={onNext}
             size="lg" 
             className="bg-amber-900 hover:bg-amber-800 text-white px-12 py-3 text-lg font-serif"
+            disabled={!canProceed()}
           >
-            Confirm Wine Shipment
+            {canProceed() ? 'Continue to Delivery Date' : 'Add More Bottles'}
             <ChevronRight className="ml-2 h-5 w-5" />
           </Button>
           <p className="text-sm text-gray-600 mt-4">
