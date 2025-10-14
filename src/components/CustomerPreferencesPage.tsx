@@ -66,17 +66,24 @@ export function CustomerPreferencesPage() {
       const inventoryRes = await api.getLiveInventory(KING_FROSCH_ID, 'all', 0);
       const categories = new Set<string>();
       
+      // Use the availableCategories from Square response
+      if (inventoryRes.availableCategories) {
+        inventoryRes.availableCategories.forEach(cat => {
+          if (cat && typeof cat === 'string') {
+            categories.add(cat);
+          }
+        });
+      }
+      
+      // Also extract from individual wine category_name
       inventoryRes.wines?.forEach(wine => {
-        if (wine.categories) {
-          wine.categories.forEach(cat => {
-            if (cat && typeof cat === 'string') {
-              categories.add(cat);
-            }
-          });
+        if (wine.category_name) {
+          categories.add(wine.category_name);
         }
-        // Also try to extract from type/variety fields
-        if (wine.type) categories.add(wine.type);
-        if (wine.variety) categories.add(wine.variety);
+        // Also try to extract from varietal/color/sweetness fields
+        if (wine.varietal) categories.add(wine.varietal);
+        if (wine.color) categories.add(wine.color);
+        if (wine.sweetness) categories.add(wine.sweetness);
       });
       
       setAvailableCategories(Array.from(categories).sort());
@@ -98,7 +105,9 @@ export function CustomerPreferencesPage() {
       console.error('Failed to fetch preference data:', error);
       // Fallback categories if Square fails
       setAvailableCategories([
-        "Red Wine", "White Wine", "Rosé", "Sparkling", "Dessert Wine", "Port"
+        "Red Wine", "White Wine", "Rosé", "Sparkling", "Dessert Wine", "Port",
+        "Cabernet Sauvignon", "Chardonnay", "Pinot Noir", "Sauvignon Blanc",
+        "Merlot", "Riesling", "Syrah", "Pinot Grigio", "Malbec", "Zinfandel"
       ]);
     } finally {
       setLoading(false);
