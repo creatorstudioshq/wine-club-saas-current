@@ -6,10 +6,9 @@ import { InventoryPageSimple } from "./components/InventoryPageSimple";
 import { PlansPage } from "./components/PlansPage";
 import { CustomerPreferencesPage } from "./components/CustomerPreferencesPage";
 import { ShipmentBuilderPage } from "./components/ShipmentBuilderPage";
-import { SimpleSetupPage } from "./components/SimpleSetupPage";
+import { SquareConfigPage } from "./components/SquareConfigPage";
 import { SuperadminDashboard } from "./components/SuperadminDashboard";
 import { MarketingIntegration } from "./components/MarketingIntegration";
-import { SquareAuthDiagnostic } from "./components/SquareAuthDiagnostic";
 import { AuthPage } from "./components/AuthPage";
 import { EmbeddedSignup } from "./components/EmbeddedSignup";
 import { WineSelectionReview } from "./components/customer/WineSelectionReview";
@@ -20,7 +19,7 @@ import { WelcomeToast } from "./components/WelcomeToast";
 import { Toaster } from "./components/ui/sonner";
 import { api } from "./utils/api";
 
-type AdminPage = "dashboard" | "members" | "inventory" | "plans" | "preferences" | "shipments" | "client-setup" | "superadmin" | "marketing" | "square-diagnostic";
+type AdminPage = "dashboard" | "members" | "inventory" | "plans" | "preferences" | "shipments" | "square-config" | "superadmin" | "marketing";
 type CustomerStep = "wine-selection" | "upsell" | "delivery" | "payment" | "preferences" | "payment-collection";
 type AppMode = "admin" | "customer" | "auth" | "signup";
 
@@ -165,10 +164,8 @@ export default function App() {
         return <CustomerPreferencesPage />;
       case "shipments":
         return <ShipmentBuilderPage />;
-      case "client-setup":
-        return <SimpleSetupPage />;
-      case "square-diagnostic":
-        return <SquareAuthDiagnostic />;
+      case "square-config":
+        return <SquareConfigPage />;
       case "superadmin":
         return <SuperadminDashboard />;
       case "marketing":
