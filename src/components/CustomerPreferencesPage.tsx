@@ -40,7 +40,7 @@ interface CustomerPreferenceAssignment {
 // No hardcoded categories - pulled live from Square catalog
 
 // Sample preferences data - in production this would come from KV store
-const samplePreferences: CustomerPreference[] = [];
+const samplePreferences: CustomerPreferenceAssignment[] = [];
 
 export function CustomerPreferencesPage() {
   const [activeTab, setActiveTab] = useState("global-preferences");
@@ -104,13 +104,22 @@ export function CustomerPreferencesPage() {
       console.log('Loaded categories:', Array.from(categories).sort());
       console.log('Inventory response:', inventoryRes);
       
-      // Load customer preferences from KV store
+      // Load customer assignments from KV store
       try {
-        const preferencesRes = await api.getCustomerPreferences(KING_FROSCH_ID);
-        setPreferences(preferencesRes.preferences || samplePreferences);
+        const assignmentsRes = await api.getCustomerAssignments(KING_FROSCH_ID);
+        setCustomerAssignments(assignmentsRes.assignments || samplePreferences);
       } catch (error) {
-        console.info('Using sample preferences data (backend not yet configured)');
-        setPreferences(samplePreferences);
+        console.info('Using sample assignment data (backend not yet configured)');
+        setCustomerAssignments(samplePreferences);
+      }
+      
+      // Load global preferences from KV store
+      try {
+        const globalPrefsRes = await api.getGlobalPreferences(KING_FROSCH_ID);
+        setGlobalPreferences(globalPrefsRes.preferences || []);
+      } catch (error) {
+        console.info('Using sample global preferences data (backend not yet configured)');
+        setGlobalPreferences([]);
       }
       
       // TODO: Load Square customers

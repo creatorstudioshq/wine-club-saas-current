@@ -170,7 +170,13 @@ export function MembersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Plans</SelectItem>
-                {plans.map(plan => (
+                {plans.reduce((acc, plan) => {
+                  // Deduplicate plans by name
+                  if (!acc.find(p => p.name === plan.name)) {
+                    acc.push(plan);
+                  }
+                  return acc;
+                }, []).map(plan => (
                   <SelectItem key={plan.id} value={plan.name}>
                     {plan.name}
                   </SelectItem>
@@ -323,7 +329,13 @@ export function MembersPage() {
                     <SelectValue placeholder="Select a plan" />
                   </SelectTrigger>
                   <SelectContent>
-                    {plans.map((plan) => (
+                    {plans.reduce((acc, plan) => {
+                      // Deduplicate plans by name
+                      if (!acc.find(p => p.name === plan.name)) {
+                        acc.push(plan);
+                      }
+                      return acc;
+                    }, []).map((plan) => (
                       <SelectItem key={plan.id} value={plan.id}>
                         {plan.name} - {plan.bottle_count} bottles
                       </SelectItem>
