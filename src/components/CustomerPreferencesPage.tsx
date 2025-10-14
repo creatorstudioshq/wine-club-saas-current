@@ -287,6 +287,15 @@ export function CustomerPreferencesPage() {
     fetchData();
   }, []);
 
+  // Debug modal state changes
+  useEffect(() => {
+    console.log('Modal state changed:', isCreateGlobalModalOpen);
+    if (isCreateGlobalModalOpen) {
+      console.log('Modal opened - availableCategories:', availableCategories);
+      console.log('Modal opened - loading:', loading);
+    }
+  }, [isCreateGlobalModalOpen, availableCategories, loading]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -382,6 +391,24 @@ export function CustomerPreferencesPage() {
                       Define a preference that customers can choose from during signup.
                     </DialogDescription>
                   </DialogHeader>
+                  
+                  {/* Debug info */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-4">
+                    <p className="text-xs text-yellow-800">
+                      Debug: Modal is open: {isCreateGlobalModalOpen ? 'Yes' : 'No'} | 
+                      Categories loaded: {availableCategories.length} | 
+                      Loading: {loading ? 'Yes' : 'No'}
+                    </p>
+                    <Button 
+                      type="button" 
+                      size="sm" 
+                      onClick={() => alert('Modal is working!')}
+                      className="mt-2"
+                    >
+                      Test Button
+                    </Button>
+                  </div>
+                  
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="preference-name">Preference Name</Label>
