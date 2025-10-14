@@ -601,13 +601,14 @@ app.get("/make-server-9d538b9c/square-config/:wineClubId", async (c) => {
 
 app.post("/make-server-9d538b9c/square-config", async (c) => {
   try {
-    const { wine_club_id, square_location_id, square_access_token } = await c.req.json();
+    const { wine_club_id, square_location_id, square_access_token, selected_categories } = await c.req.json();
     const configKey = `square_config_${wine_club_id}`;
     
     const config = {
       wine_club_id,
       square_location_id,
       square_access_token,
+      selected_categories: selected_categories || [],
       updated_at: new Date().toISOString()
     };
     
@@ -620,6 +621,7 @@ app.post("/make-server-9d538b9c/square-config", async (c) => {
         wine_club_id: config.wine_club_id,
         square_location_id: config.square_location_id,
         square_access_token: config.square_access_token ? '***' + config.square_access_token.slice(-4) : null,
+        selected_categories: config.selected_categories,
         updated_at: config.updated_at
       }
     });
