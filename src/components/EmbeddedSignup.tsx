@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Checkbox } from "./ui/checkbox";
 import { Badge } from "./ui/badge";
-import { Wine, Star, Gift, Crown } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Wine, Star, Gift, Crown, RotateCcw } from "lucide-react";
 
 interface Plan {
   id: string;
@@ -96,6 +97,9 @@ export function EmbeddedSignup({
     email: "",
     phone: "",
   });
+  const [flippedCards, setFlippedCards] = useState<{[key: string]: boolean}>({});
+  const [swapModalOpen, setSwapModalOpen] = useState(false);
+  const [swapPlanId, setSwapPlanId] = useState<string>("");
 
   const handlePreferenceToggle = (prefId: string) => {
     setPreferences(prev => 
@@ -103,6 +107,23 @@ export function EmbeddedSignup({
         ? prev.filter(p => p !== prefId)
         : [...prev, prefId]
     );
+  };
+
+  const toggleCardFlip = (planId: string) => {
+    setFlippedCards(prev => ({
+      ...prev,
+      [planId]: !prev[planId]
+    }));
+  };
+
+  const handleSwapPlan = (planId: string) => {
+    setSwapPlanId(planId);
+    setSwapModalOpen(true);
+  };
+
+  const confirmSwap = (newPlanId: string) => {
+    setSelectedPlan(newPlanId);
+    setSwapModalOpen(false);
   };
 
   const handleNextStep = () => {
@@ -143,36 +164,133 @@ export function EmbeddedSignup({
               <p className="text-gray-600">Select the perfect wine club membership for you</p>
             </div>
             
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
               {PLANS.map((plan) => (
-                <Card 
-                  key={plan.id}
-                  className={`cursor-pointer transition-all w-full ${
-                    selectedPlan === plan.id 
-                      ? 'ring-2 ring-primary shadow-md' 
-                      : 'hover:shadow-md'
-                  }`}
-                  onClick={() => setSelectedPlan(plan.id)}
-                >
-                  <CardContent className="p-6 text-center">
-                    {plan.popular && (
-                      <Badge className="mb-2">Most Popular</Badge>
-                    )}
-                    <div className="mb-4 mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                      {plan.icon}
+                <div key={plan.id} className="group">
+                  <Card 
+                    className={`cursor-pointer transition-all w-full overflow-hidden ${
+                      selectedPlan === plan.id 
+                        ? 'ring-2 ring-primary shadow-lg' 
+                        : 'hover:shadow-md'
+                    }`}
+                  >
+                    <div 
+                      className="relative h-80 cursor-pointer"
+                      onMouseEnter={() => toggleCardFlip(plan.id)}
+                      onMouseLeave={() => toggleCardFlip(plan.id)}
+                      onClick={() => setSelectedPlan(plan.id)}
+                    >
+                      {/* Front of card */}
+                      <div className={`absolute inset-0 transition-transform duration-700 ${
+                        flippedCards[plan.id] ? 'rotate-y-180' : ''
+                      }`} style={{backfaceVisibility: 'hidden'}}>
+                        <div className="h-full bg-gradient-to-br from-amber-50 to-orange-50 p-6 flex flex-col justify-center items-center">
+                          {plan.popular && (
+                            <Badge className="mb-4 bg-primary text-white">Most Popular</Badge>
+                          )}
+                          <div className="mb-6 mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+                            {plan.icon}
+                          </div>
+                          <h3 className="text-xl font-serif mb-2 text-center">{plan.name}</h3>
+                          <p className="text-sm text-muted-foreground mb-4 text-center">
+                            {plan.bottles} bottles, {plan.frequency.toLowerCase()}
+                          </p>
+                          <p className="text-3xl font-bold text-primary mb-2">
+                            ${plan.price}
+                          </p>
+                          <p className="text-sm text-green-600">
+                            {plan.discount}% off retail
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Back of card - Details */}
+                      <div className={`absolute inset-0 transition-transform duration-700 ${
+                        flippedCards[plan.id] ? 'rotate-y-0' : ''
+                      }`} style={{backfaceVisibility: 'hidden', transform: 'rotateY(180deg)'}}>
+                        <div className="h-full bg-gradient-to-br from-primary to-primary/80 p-6 text-white flex flex-col justify-center">
+                          <h3 className="text-xl font-serif mb-4 text-center">{plan.name}</h3>
+                          
+                          <div className="space-y-3 text-sm">
+                            <div>
+                              <h4 className="font-medium mb-2 text-primary-foreground/80">What's Included</h4>
+                              <p className="text-primary-foreground/90 leading-relaxed">
+                                {plan.bottles} carefully curated bottles delivered {plan.frequency.toLowerCase()}
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <h4 className="font-medium mb-2 text-primary-foreground/80">Member Benefits</h4>
+                              <p className="text-primary-foreground/90 leading-relaxed">
+                                {plan.discount}% discount on all wines, exclusive tastings, and priority access to limited releases.
+                              </p>
+                            </div>
+
+                            <div className="text-center mt-4">
+                              <p className="text-lg font-bold">
+                                ${plan.price} per shipment
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <h4 className="font-serif text-lg mb-2">{plan.name}</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {plan.bottles} bottles, {plan.frequency.toLowerCase()}
-                    </p>
-                    <p className="text-2xl font-bold text-primary mb-2">
-                      ${plan.price}
-                    </p>
-                    <p className="text-sm text-green-600">
-                      {plan.discount}% off retail
-                    </p>
-                  </CardContent>
-                </Card>
+
+                    <CardContent className="p-4 bg-white">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Badge variant="outline" className="mb-2">{plan.frequency}</Badge>
+                          <p className="text-sm text-muted-foreground">{plan.bottles} bottles</p>
+                        </div>
+                        <Dialog open={swapModalOpen && swapPlanId === plan.id} onOpenChange={(open) => {
+                          setSwapModalOpen(open);
+                          if (open) setSwapPlanId(plan.id);
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSwapPlan(plan.id);
+                              }}
+                            >
+                              <RotateCcw className="h-4 w-4 mr-2" />
+                              Swap
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Choose Different Plan</DialogTitle>
+                              <DialogDescription>
+                                Select an alternative plan for your membership.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 md:grid-cols-3">
+                              {PLANS.filter(p => p.id !== plan.id).map((altPlan) => (
+                                <Card 
+                                  key={altPlan.id} 
+                                  className="cursor-pointer hover:shadow-md transition-shadow"
+                                  onClick={() => confirmSwap(altPlan.id)}
+                                >
+                                  <CardContent className="p-4 text-center">
+                                    <div className="mb-3 mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                      {altPlan.icon}
+                                    </div>
+                                    <h4 className="font-medium mb-1">{altPlan.name}</h4>
+                                    <p className="text-sm text-muted-foreground mb-2">{altPlan.bottles} bottles</p>
+                                    <Badge variant="outline" className="text-xs">{altPlan.frequency}</Badge>
+                                    <p className="text-lg font-bold text-primary mt-2">${altPlan.price}</p>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               ))}
             </div>
           </div>
