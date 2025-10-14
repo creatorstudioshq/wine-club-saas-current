@@ -14,19 +14,23 @@ import { api } from "../utils/api";
 
 const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
 
-interface CategoryPreference {
-  category: string;
-  quantity: number;
+interface GlobalPreference {
+  id: string;
+  name: string;
+  description: string;
+  categories: string[]; // Categories assigned by wine owner
+  created_at: string;
+  updated_at: string;
 }
 
-interface CustomerPreference {
+interface CustomerPreferenceAssignment {
   id: string;
   customer_id: string;
   customer_name: string;
   customer_email: string;
-  preference_type: 'category_based' | 'custom';
-  category_preferences: CategoryPreference[];
-  custom_wine_assignments?: string[]; // Wine IDs for custom assignments
+  preference_type: 'global_preference' | 'custom_wines';
+  global_preference_id?: string; // Reference to GlobalPreference
+  custom_wine_ids?: string[]; // Specific Square wine IDs
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -39,22 +43,31 @@ interface CustomerPreference {
 const samplePreferences: CustomerPreference[] = [];
 
 export function CustomerPreferencesPage() {
-  const [activeTab, setActiveTab] = useState("preferences");
-  const [preferences, setPreferences] = useState<CustomerPreference[]>(samplePreferences);
+  const [activeTab, setActiveTab] = useState("global-preferences");
+  const [globalPreferences, setGlobalPreferences] = useState<GlobalPreference[]>([]);
+  const [customerAssignments, setCustomerAssignments] = useState<CustomerPreferenceAssignment[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [squareCustomers, setSquareCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Create preference modal state
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newPreference, setNewPreference] = useState<Partial<CustomerPreference>>({
+  // Create global preference modal state
+  const [isCreateGlobalModalOpen, setIsCreateGlobalModalOpen] = useState(false);
+  const [newGlobalPreference, setNewGlobalPreference] = useState<Partial<GlobalPreference>>({
+    name: "",
+    description: "",
+    categories: []
+  });
+
+  // Create customer assignment modal state
+  const [isCreateAssignmentModalOpen, setIsCreateAssignmentModalOpen] = useState(false);
+  const [newAssignment, setNewAssignment] = useState<Partial<CustomerPreferenceAssignment>>({
     customer_id: "",
     customer_name: "",
     customer_email: "",
-    preference_type: 'category_based',
-    category_preferences: [],
-    custom_wine_assignments: [],
+    preference_type: 'global_preference',
+    global_preference_id: "",
+    custom_wine_ids: [],
     notes: ""
   });
 
@@ -215,62 +228,52 @@ export function CustomerPreferencesPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="preferences">Custom Shipments</TabsTrigger>
-          <TabsTrigger value="categories">Category Management</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="global-preferences">Global Preferences</TabsTrigger>
+          <TabsTrigger value="customer-assignments">Customer Assignments</TabsTrigger>
+          <TabsTrigger value="categories">Available Categories</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="preferences" className="space-y-6">
-          {/* Preferences Stats */}
-          <div className="grid gap-4 md:grid-cols-4">
+        <TabsContent value="global-preferences" className="space-y-6">
+          {/* Global Preferences Stats */}
+          <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm">Total Preferences</CardTitle>
-                <User className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl">{preferences.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Customer preferences set
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm">Category-Based</CardTitle>
+                <CardTitle className="text-sm">Total Global Preferences</CardTitle>
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl">{categoryStats}</div>
+                <div className="text-2xl">{globalPreferences.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  Standard preferences
+                  Preferences customers can choose from
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm">Custom Assignments</CardTitle>
+                <CardTitle className="text-sm">Customer Assignments</CardTitle>
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl">{customStats}</div>
+                <div className="text-2xl">{customerAssignments.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  Specific wine assignments
+                  Customers with assigned preferences
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm">Total Bottles</CardTitle>
+                <CardTitle className="text-sm">Custom Wine Assignments</CardTitle>
                 <Wine className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl">{totalBottlesRequested}</div>
+                <div className="text-2xl">
+                  {customerAssignments.filter(a => a.preference_type === 'custom_wines').length}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Next shipment requirement
+                  Customers with specific wine assignments
                 </p>
               </CardContent>
             </Card>
@@ -279,151 +282,86 @@ export function CustomerPreferencesPage() {
           <Card>
             <CardHeader className="flex items-center justify-between">
               <div>
-                <CardTitle>Custom Shipments</CardTitle>
+                <CardTitle>Global Preferences</CardTitle>
                 <CardDescription>
-                  Manage individual customer wine preferences and custom assignments.
+                  Create preferences that customers can choose from during signup. Assign categories from your wine collection to each preference.
                 </CardDescription>
               </div>
-              <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+              <Dialog open={isCreateGlobalModalOpen} onOpenChange={setIsCreateGlobalModalOpen}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Preference
+                    Create Global Preference
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Create Customer Preference</DialogTitle>
+                    <DialogTitle>Create Global Preference</DialogTitle>
                     <DialogDescription>
-                      Set up wine preferences for a customer.
+                      Define a preference that customers can choose from during signup.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="customer-name">Customer Name</Label>
-                        <Input
-                          id="customer-name"
-                          value={newPreference.customer_name || ""}
-                          onChange={(e) => setNewPreference({...newPreference, customer_name: e.target.value})}
-                          placeholder="John Smith"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="customer-email">Customer Email</Label>
-                        <Input
-                          id="customer-email"
-                          type="email"
-                          value={newPreference.customer_email || ""}
-                          onChange={(e) => setNewPreference({...newPreference, customer_email: e.target.value})}
-                          placeholder="john@example.com"
-                        />
-                      </div>
-                    </div>
-
                     <div>
-                      <Label htmlFor="preference-type">Preference Type</Label>
-                      <Select 
-                        value={newPreference.preference_type || "category_based"} 
-                        onValueChange={(value: 'category_based' | 'custom') => setNewPreference({...newPreference, preference_type: value})}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="category_based">Category-Based (e.g., 3 Dry Red + 3 Sweet Red)</SelectItem>
-                          <SelectItem value="custom">Custom Assignment (Specific wines chosen)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {newPreference.preference_type === 'category_based' && (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <Label>Category Preferences</Label>
-                          <Button type="button" variant="outline" size="sm" onClick={addCategoryPreference}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Category
-                          </Button>
-                        </div>
-                        {newPreference.category_preferences?.map((catPref, index) => (
-                          <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
-                            <div className="flex-1">
-                              <Select 
-                                value={catPref.category} 
-                                onValueChange={(value) => updateCategoryPreference(index, 'category', value)}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {availableCategories.map(cat => (
-                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="w-24">
-                              <Input
-                                type="number"
-                                min="1"
-                                max="12"
-                                value={catPref.quantity}
-                                onChange={(e) => updateCategoryPreference(index, 'quantity', parseInt(e.target.value) || 1)}
-                                placeholder="Qty"
-                              />
-                            </div>
-                            <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => removeCategoryPreference(index)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                        {(newPreference.category_preferences?.length || 0) === 0 && (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            No category preferences added yet. Click "Add Category" to start.
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {newPreference.preference_type === 'custom' && (
-                      <div>
-                        <Label htmlFor="custom-instructions">Custom Assignment Instructions</Label>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Custom wine assignments will be managed in the Shipment Builder using specific Square item IDs.
-                          No inventory data is stored locally - all wine details pulled live from Square.
-                        </p>
-                        <Input
-                          id="custom-instructions"
-                          value={newPreference.notes || ""}
-                          onChange={(e) => setNewPreference({...newPreference, notes: e.target.value})}
-                          placeholder="Special instructions for custom wine selection..."
-                        />
-                      </div>
-                    )}
-
-                    <div>
-                      <Label htmlFor="notes">Notes (Optional)</Label>
+                      <Label htmlFor="preference-name">Preference Name</Label>
                       <Input
-                        id="notes"
-                        value={newPreference.notes || ""}
-                        onChange={(e) => setNewPreference({...newPreference, notes: e.target.value})}
-                        placeholder="Additional notes about customer preferences..."
+                        id="preference-name"
+                        value={newGlobalPreference.name || ""}
+                        onChange={(e) => setNewGlobalPreference({...newGlobalPreference, name: e.target.value})}
+                        placeholder="e.g., Dry Red Wines, Sweet White Wines"
                       />
                     </div>
 
+                    <div>
+                      <Label htmlFor="preference-description">Description</Label>
+                      <Input
+                        id="preference-description"
+                        value={newGlobalPreference.description || ""}
+                        onChange={(e) => setNewGlobalPreference({...newGlobalPreference, description: e.target.value})}
+                        placeholder="Brief description of this preference"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Assign Categories from Your Collection</Label>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Select which categories from your Square inventory should be included in this preference.
+                      </p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-40 overflow-y-auto border rounded-lg p-4">
+                        {availableCategories.map((category) => (
+                          <label key={category} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={newGlobalPreference.categories?.includes(category) || false}
+                              onChange={(e) => {
+                                const categories = newGlobalPreference.categories || [];
+                                if (e.target.checked) {
+                                  setNewGlobalPreference({
+                                    ...newGlobalPreference,
+                                    categories: [...categories, category]
+                                  });
+                                } else {
+                                  setNewGlobalPreference({
+                                    ...newGlobalPreference,
+                                    categories: categories.filter(c => c !== category)
+                                  });
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm">{category}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                      <Button variant="outline" onClick={() => setIsCreateGlobalModalOpen(false)}>
                         Cancel
                       </Button>
                       <Button 
-                        onClick={handleCreatePreference} 
-                        disabled={!newPreference.customer_name || !newPreference.customer_email}
+                        onClick={handleCreateGlobalPreference} 
+                        disabled={!newGlobalPreference.name || !newGlobalPreference.description || !newGlobalPreference.categories?.length}
                       >
                         Create Preference
                       </Button>
@@ -436,56 +374,43 @@ export function CustomerPreferencesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Preferences</TableHead>
-                    <TableHead>Total Bottles</TableHead>
-                    <TableHead>Notes</TableHead>
+                    <TableHead>Preference Name</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Categories</TableHead>
+                    <TableHead>Customer Count</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {preferences.map((preference) => {
-                    const totalBottles = preference.preference_type === 'category_based' 
-                      ? preference.category_preferences.reduce((sum, cat) => sum + cat.quantity, 0)
-                      : preference.custom_wine_assignments?.length || 0;
-
+                  {globalPreferences.map((preference) => {
+                    const customerCount = customerAssignments.filter(a => a.global_preference_id === preference.id).length;
+                    
                     return (
                       <TableRow key={preference.id}>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{preference.customer_name}</p>
-                            <p className="text-sm text-muted-foreground">{preference.customer_email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={preference.preference_type === 'custom' ? 'default' : 'outline'}>
-                            {preference.preference_type === 'custom' ? 'Custom' : 'Category'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {preference.preference_type === 'category_based' ? (
-                            <div className="space-y-1">
-                              {preference.category_preferences.map((catPref, idx) => (
-                                <div key={idx} className="text-sm">
-                                  {catPref.quantity}x {catPref.category}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Custom assignment</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Wine className="h-4 w-4 text-muted-foreground" />
-                            {totalBottles}
+                            <p className="font-medium">{preference.name}</p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <span className="text-sm text-muted-foreground">
-                            {preference.notes || "No notes"}
+                            {preference.description}
                           </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {preference.categories.map((category, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs mr-1">
+                                {category}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            {customerCount}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
