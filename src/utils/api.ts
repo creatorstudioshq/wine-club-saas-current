@@ -118,7 +118,51 @@ export const api = {
     return res.json();
   },
 
-  // Customer Preferences
+  // Global Preferences
+  async getGlobalPreferences(wineClubId: string) {
+    const res = await fetch(`${BASE_URL}/global-preferences/${wineClubId}`, {
+      headers: { Authorization: `Bearer ${publicAnonKey}` },
+    });
+    if (!res.ok) throw new Error(`Global preferences fetch failed: ${res.status}`);
+    return res.json();
+  },
+
+  async createGlobalPreference(data: any) {
+    const res = await fetch(`${BASE_URL}/global-preferences`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`Global preference creation failed: ${res.status}`);
+    return res.json();
+  },
+
+  // Customer Assignments
+  async getCustomerAssignments(wineClubId: string) {
+    const res = await fetch(`${BASE_URL}/customer-assignments/${wineClubId}`, {
+      headers: { Authorization: `Bearer ${publicAnonKey}` },
+    });
+    if (!res.ok) throw new Error(`Customer assignments fetch failed: ${res.status}`);
+    return res.json();
+  },
+
+  async createCustomerAssignment(data: any) {
+    const res = await fetch(`${BASE_URL}/customer-assignments`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`Customer assignment creation failed: ${res.status}`);
+    return res.json();
+  },
+
+  // Legacy Customer Preferences (for backward compatibility)
   async getCustomerPreferences(wineClubId: string) {
     const res = await fetch(`${BASE_URL}/preferences/${wineClubId}`, {
       headers: { Authorization: `Bearer ${publicAnonKey}` },

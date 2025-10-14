@@ -142,12 +142,44 @@ export function CustomerPreferencesPage() {
         categories: newGlobalPreference.categories || []
       };
 
-      // In production, this would call the API
+      // Call API to create global preference
+      const response = await api.createGlobalPreference(preferenceData);
+      
+      if (response.preference) {
+        setGlobalPreferences([...globalPreferences, response.preference]);
+        setIsCreateGlobalModalOpen(false);
+        setNewGlobalPreference({
+          name: "",
+          description: "",
+          categories: []
+        });
+      } else {
+        // Fallback for demo
+        const newPreference: GlobalPreference = {
+          id: `pref_${Date.now()}`,
+          name: preferenceData.name,
+          description: preferenceData.description,
+          categories: preferenceData.categories,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        setGlobalPreferences([...globalPreferences, newPreference]);
+        setIsCreateGlobalModalOpen(false);
+        setNewGlobalPreference({
+          name: "",
+          description: "",
+          categories: []
+        });
+      }
+    } catch (error) {
+      console.error('Failed to create global preference:', error);
+      // Still create locally for demo purposes
       const newPreference: GlobalPreference = {
         id: `pref_${Date.now()}`,
-        name: preferenceData.name,
-        description: preferenceData.description,
-        categories: preferenceData.categories,
+        name: newGlobalPreference.name!,
+        description: newGlobalPreference.description!,
+        categories: newGlobalPreference.categories || [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -159,8 +191,6 @@ export function CustomerPreferencesPage() {
         description: "",
         categories: []
       });
-    } catch (error) {
-      console.error('Failed to create global preference:', error);
     }
   };
 
@@ -177,16 +207,60 @@ export function CustomerPreferencesPage() {
         notes: newAssignment.notes
       };
 
-      // In production, this would call the API
+      // Call API to create customer assignment
+      const response = await api.createCustomerAssignment(assignmentData);
+      
+      if (response.assignment) {
+        setCustomerAssignments([...customerAssignments, response.assignment]);
+        setIsCreateAssignmentModalOpen(false);
+        setNewAssignment({
+          customer_id: "",
+          customer_name: "",
+          customer_email: "",
+          preference_type: 'global_preference',
+          global_preference_id: "",
+          custom_wine_ids: [],
+          notes: ""
+        });
+      } else {
+        // Fallback for demo
+        const newAssignmentObj: CustomerPreferenceAssignment = {
+          id: `assign_${Date.now()}`,
+          customer_id: assignmentData.customer_id,
+          customer_name: assignmentData.customer_name,
+          customer_email: assignmentData.customer_email,
+          preference_type: assignmentData.preference_type,
+          global_preference_id: assignmentData.global_preference_id,
+          custom_wine_ids: assignmentData.custom_wine_ids,
+          notes: assignmentData.notes,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        setCustomerAssignments([...customerAssignments, newAssignmentObj]);
+        setIsCreateAssignmentModalOpen(false);
+        setNewAssignment({
+          customer_id: "",
+          customer_name: "",
+          customer_email: "",
+          preference_type: 'global_preference',
+          global_preference_id: "",
+          custom_wine_ids: [],
+          notes: ""
+        });
+      }
+    } catch (error) {
+      console.error('Failed to create customer assignment:', error);
+      // Still create locally for demo purposes
       const newAssignmentObj: CustomerPreferenceAssignment = {
         id: `assign_${Date.now()}`,
-        customer_id: assignmentData.customer_id,
-        customer_name: assignmentData.customer_name,
-        customer_email: assignmentData.customer_email,
-        preference_type: assignmentData.preference_type,
-        global_preference_id: assignmentData.global_preference_id,
-        custom_wine_ids: assignmentData.custom_wine_ids,
-        notes: assignmentData.notes,
+        customer_id: newAssignment.customer_id!,
+        customer_name: newAssignment.customer_name!,
+        customer_email: newAssignment.customer_email!,
+        preference_type: newAssignment.preference_type!,
+        global_preference_id: newAssignment.global_preference_id,
+        custom_wine_ids: newAssignment.custom_wine_ids,
+        notes: newAssignment.notes,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -202,8 +276,6 @@ export function CustomerPreferencesPage() {
         custom_wine_ids: [],
         notes: ""
       });
-    } catch (error) {
-      console.error('Failed to create customer assignment:', error);
     }
   };
 

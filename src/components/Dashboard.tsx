@@ -45,18 +45,27 @@ export function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  // Calculate plan distribution
-  const planDistribution = plans.map(plan => {
+  // Calculate plan distribution (deduplicate by plan ID)
+  const planDistribution = plans.reduce((acc, plan) => {
+    // Check if plan already exists in accumulator
+    const existingPlan = acc.find(p => p.id === plan.id);
+    if (existingPlan) {
+      return acc; // Skip duplicates
+    }
+    
     const planMembers = members.filter(member => member.subscription_plan_id === plan.id);
     const totalMembers = members.length;
     const percentage = totalMembers > 0 ? Math.round((planMembers.length / totalMembers) * 100) : 0;
     
-    return {
+    acc.push({
+      id: plan.id,
       plan: plan.name,
       count: planMembers.length,
       percentage
-    };
-  });
+    });
+    
+    return acc;
+  }, [] as Array<{id: string, plan: string, count: number, percentage: number}>);
 
   // Calculate total bottles in inventory
   const totalBottles = inventory.reduce((sum, wine) => sum + (wine.total_inventory || 0), 0);
@@ -231,7 +240,7 @@ export function Dashboard() {
               ))
             ) : planDistribution.length > 0 ? (
               planDistribution.map((plan) => (
-                <div key={plan.plan} className="space-y-2">
+                <div key={plan.id} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">{plan.plan}</span>
                     <span className="text-sm text-muted-foreground">{plan.count} members</span>
