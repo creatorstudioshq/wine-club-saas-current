@@ -1,4 +1,6 @@
 {
+  "buildCommand": "pnpm build",
+  "outputDirectory": "build",
   "functions": {
     "api/**/*.tsx": {
       "runtime": "@vercel/node"

@@ -8,16 +8,7 @@ Go to: https://github.com/organizations/creatorstudioshq/repositories/new
 - Visibility: **Private** ✅
 - Don't initialize with README ❌
 
-### 2. Push to GitHub (Copy/Paste)
-
-```bash
-git init
-git add .
-git commit -m "feat: Initial commit - Complete Wine Club SaaS with Square integration"
-git remote add origin https://github.com/creatorstudioshq/wine-club-saas.git
-git branch -M main
-git push -u origin main
-```
+#
 
 **Note:** Use a Personal Access Token (not password) when prompted.
 Create one here: https://github.com/settings/tokens
