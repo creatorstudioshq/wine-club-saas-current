@@ -101,6 +101,9 @@ export function CustomerPreferencesPage() {
       
       setAvailableCategories(Array.from(categories).sort());
       
+      console.log('Loaded categories:', Array.from(categories).sort());
+      console.log('Inventory response:', inventoryRes);
+      
       // Load customer preferences from KV store
       try {
         const preferencesRes = await api.getCustomerPreferences(KING_FROSCH_ID);
@@ -402,34 +405,57 @@ export function CustomerPreferencesPage() {
 
                     <div>
                       <Label>Assign Categories from Your Collection</Label>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Select which categories from your Square inventory should be included in this preference.
-                      </p>
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-sm text-muted-foreground">
+                          Select which categories from your Square inventory should be included in this preference.
+                        </p>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={handleRefresh}
+                          disabled={refreshing}
+                        >
+                          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                          Refresh Categories
+                        </Button>
+                      </div>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-40 overflow-y-auto border rounded-lg p-4">
-                        {availableCategories.map((category) => (
-                          <label key={category} className="flex items-center space-x-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={newGlobalPreference.categories?.includes(category) || false}
-                              onChange={(e) => {
-                                const categories = newGlobalPreference.categories || [];
-                                if (e.target.checked) {
-                                  setNewGlobalPreference({
-                                    ...newGlobalPreference,
-                                    categories: [...categories, category]
-                                  });
-                                } else {
-                                  setNewGlobalPreference({
-                                    ...newGlobalPreference,
-                                    categories: categories.filter(c => c !== category)
-                                  });
-                                }
-                              }}
-                              className="rounded border-gray-300"
-                            />
-                            <span className="text-sm">{category}</span>
-                          </label>
-                        ))}
+                        {availableCategories.length > 0 ? (
+                          availableCategories.map((category) => (
+                            <label key={category} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={newGlobalPreference.categories?.includes(category) || false}
+                                onChange={(e) => {
+                                  const categories = newGlobalPreference.categories || [];
+                                  if (e.target.checked) {
+                                    setNewGlobalPreference({
+                                      ...newGlobalPreference,
+                                      categories: [...categories, category]
+                                    });
+                                  } else {
+                                    setNewGlobalPreference({
+                                      ...newGlobalPreference,
+                                      categories: categories.filter(c => c !== category)
+                                    });
+                                  }
+                                }}
+                                className="rounded border-gray-300"
+                              />
+                              <span className="text-sm">{category}</span>
+                            </label>
+                          ))
+                        ) : (
+                          <div className="col-span-full text-center py-4">
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Loading categories from Square inventory...
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              If this persists, check your Square configuration.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
