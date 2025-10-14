@@ -340,6 +340,44 @@ app.post("/make-server-9d538b9c/customer-preferences", async (c) => {
   }
 });
 
+// Shipping Schedule Management
+app.get("/make-server-9d538b9c/shipping-schedule/:wineClubId", async (c) => {
+  try {
+    const wineClubId = c.req.param('wineClubId');
+    const schedule = await kv.get(`shipping_schedule_${wineClubId}`);
+    return c.json({ schedule: schedule || null });
+  } catch (error) {
+    console.error('Error fetching shipping schedule:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+app.post("/make-server-9d538b9c/shipping-schedule", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { wine_club_id, shipping_day_of_week, shipping_week_of_month, advance_notice_days, available_days, timezone } = body;
+    
+    const scheduleId = `shipping_schedule_${wine_club_id}`;
+    const schedule = {
+      id: scheduleId,
+      wine_club_id,
+      shipping_day_of_week,
+      shipping_week_of_month,
+      advance_notice_days,
+      available_days,
+      timezone,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    await kv.set(scheduleId, schedule);
+    return c.json({ schedule });
+  } catch (error) {
+    console.error('Error saving shipping schedule:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
 // Club Shipments Management (stores only assignments and IDs)
 app.get("/make-server-9d538b9c/club-shipments/:wine_club_id", async (c) => {
   try {

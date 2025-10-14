@@ -165,4 +165,30 @@ export const api = {
     }
     return res.json();
   },
+
+  // Shipping Schedule
+  async getShippingSchedule(wineClubId: string) {
+    const res = await fetch(`${BASE_URL}/shipping-schedule/${wineClubId}`, {
+      headers: { Authorization: `Bearer ${publicAnonKey}` },
+    });
+    if (!res.ok) throw new Error(`Shipping schedule fetch failed: ${res.status}`);
+    return res.json();
+  },
+
+  async saveShippingSchedule(data: any) {
+    const res = await fetch(`${BASE_URL}/shipping-schedule`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Shipping schedule save error:', errorText);
+      throw new Error(`Shipping schedule save failed: ${res.status} - ${errorText}`);
+    }
+    return res.json();
+  },
 };

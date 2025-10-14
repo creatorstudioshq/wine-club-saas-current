@@ -9,6 +9,7 @@ import { ShipmentBuilderPage } from "./components/ShipmentBuilderPage";
 import { SquareConfigPage } from "./components/SquareConfigPage";
 import { SuperadminDashboard } from "./components/SuperadminDashboard";
 import { MarketingIntegration } from "./components/MarketingIntegration";
+import { ShippingSchedulePage } from "./components/ShippingSchedulePage";
 import { AuthPage } from "./components/AuthPage";
 import { EmbeddedSignup } from "./components/EmbeddedSignup";
 import { WineSelectionReview } from "./components/customer/WineSelectionReview";
@@ -19,7 +20,7 @@ import { WelcomeToast } from "./components/WelcomeToast";
 import { Toaster } from "./components/ui/sonner";
 import { api } from "./utils/api";
 
-type AdminPage = "dashboard" | "members" | "inventory" | "plans" | "preferences" | "shipments" | "square-config" | "superadmin" | "marketing";
+type AdminPage = "dashboard" | "members" | "inventory" | "plans" | "preferences" | "shipments" | "square-config" | "superadmin" | "marketing" | "shipping-schedule";
 type CustomerStep = "wine-selection" | "upsell" | "delivery" | "payment" | "preferences" | "payment-collection";
 type AppMode = "admin" | "customer" | "auth" | "signup";
 
@@ -170,6 +171,8 @@ export default function App() {
         return <SuperadminDashboard />;
       case "marketing":
         return <MarketingIntegration />;
+      case "shipping-schedule":
+        return <ShippingSchedulePage />;
       default:
         return <Dashboard />;
     }
