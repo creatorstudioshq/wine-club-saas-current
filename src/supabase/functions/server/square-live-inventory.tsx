@@ -133,6 +133,52 @@ function parseSquareCatalog(data: any) {
   };
 }
 
+// Helper function to fetch all items with pagination
+async function fetchAllSquareItems(token: string, baseUrl: string) {
+  const allObjects: any[] = [];
+  let cursor: string | null = null;
+  let hasMore = true;
+  
+  while (hasMore) {
+    // Build URL with pagination
+    let url = `${baseUrl}/v2/catalog/list?types=ITEM%2CCATEGORY%2CIMAGE%2CITEM_VARIATION&include_related_objects=true&limit=100`;
+    if (cursor) {
+      url += `&cursor=${cursor}`;
+    }
+    
+    console.log(`Fetching Square catalog page: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: { 
+        'Authorization': `Bearer ${token}`, 
+        'Square-Version': '2024-01-18',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Square API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(`Received ${data.objects?.length || 0} objects from Square (page)`);
+    
+    // Add objects to our collection
+    if (data.objects) {
+      allObjects.push(...data.objects);
+    }
+    
+    // Check if there are more pages
+    hasMore = !!data.cursor;
+    cursor = data.cursor || null;
+    
+    console.log(`Total objects collected so far: ${allObjects.length}, hasMore: ${hasMore}`);
+  }
+  
+  console.log(`Final total objects from Square: ${allObjects.length}`);
+  return { objects: allObjects };
+}
+
 // Main endpoint - fetch live inventory from Square (production only)
 squareLiveInventory.get("/make-server-9d538b9c/square/live-inventory/:wineClubId", async (c) => {
   try {
@@ -155,68 +201,9 @@ squareLiveInventory.get("/make-server-9d538b9c/square/live-inventory/:wineClubId
       });
     }
 
-    // Simple GET request to catalog/list - production only
-    const url = `${baseUrl}/v2/catalog/list?types=ITEM%2CCATEGORY%2CIMAGE%2CITEM_VARIATION&include_related_objects=true`;
+    // Fetch ALL items with pagination
+    const data = await fetchAllSquareItems(token, baseUrl);
     
-    console.log(`Calling Square Production API: ${url}`);
-    
-    const response = await fetch(url, {
-      headers: { 
-        'Authorization': `Bearer ${token}`, 
-        'Square-Version': '2024-01-18',
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorJson;
-      try {
-        errorJson = JSON.parse(errorText);
-      } catch {
-        errorJson = { raw: errorText };
-      }
-      
-      console.error('Square API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        url,
-        environment: 'production',
-        token_length: token?.length || 0,
-        token_prefix: token ? token.substring(0, 15) + '...' : 'none',
-        error_body: errorJson
-      });
-      
-      let helpfulMessage = `Square API error: ${response.status} ${response.statusText}`;
-      
-      if (response.status === 401) {
-        helpfulMessage = `Authentication failed. Troubleshooting steps:
-1. Verify your SQUARE_ACCESS_TOKEN is correct (must be production token)
-2. Token shown: ${token ? token.substring(0, 15) + '...' : 'MISSING'}
-3. Ensure token hasn't expired
-4. Try regenerating token in Square Dashboard`;
-      } else if (response.status === 404) {
-        helpfulMessage = 'Location not found - check your Square location ID';
-      }
-      
-      return c.json({ 
-        error: 'square_api_error', 
-        message: helpfulMessage,
-        detail: errorJson,
-        debug: {
-          status: response.status,
-          environment: 'production',
-          base_url: baseUrl,
-          token_length: token?.length || 0,
-          token_prefix: token ? token.substring(0, 15) + '...' : 'MISSING',
-          location_id: locationId || 'MISSING'
-        },
-        wines: [],
-        isDemoMode: true
-      }, response.status);
-    }
-
-    const data = await response.json();
     console.log(`Received ${data.objects?.length || 0} objects from Square`);
     
     // Parse the response
@@ -230,7 +217,7 @@ squareLiveInventory.get("/make-server-9d538b9c/square/live-inventory/:wineClubId
       );
     }
     
-    // Apply limit if specified
+    // Apply limit if specified (0 means no limit)
     if (limit > 0) {
       wines = wines.slice(0, limit);
     }
@@ -275,27 +262,12 @@ squareLiveInventory.get("/make-server-9d538b9c/square/debug/:wineClubId", async 
     // Test API call if configured
     if (token) {
       try {
-        const testUrl = `${baseUrl}/v2/catalog/list?types=ITEM&limit=1`;
-        const testResponse = await fetch(testUrl, {
-          headers: { 
-            'Authorization': `Bearer ${token}`, 
-            'Square-Version': '2024-01-18'
-          }
-        });
-
+        const testData = await fetchAllSquareItems(token, baseUrl);
         result.api_test = {
-          success: testResponse.ok,
-          status: testResponse.status,
-          url: testUrl
+          success: true,
+          total_objects: testData.objects?.length || 0,
+          items_found: testData.objects?.filter((o: any) => o.type === 'ITEM').length || 0
         };
-
-        if (testResponse.ok) {
-          const testData = await testResponse.json();
-          result.api_test.items_found = testData.objects?.length || 0;
-        } else {
-          const errorText = await testResponse.text();
-          result.api_test.error = errorText;
-        }
       } catch (testError) {
         result.api_test = {
           success: false,

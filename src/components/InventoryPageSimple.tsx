@@ -48,7 +48,7 @@ export function InventoryPageSimple() {
       const response = await api.getLiveInventory(
         KING_FROSCH_ID,
         'all',
-        0
+        0  // 0 means no limit - get all items
       );
       
       // Filter out wines with "Uncategorized" category
