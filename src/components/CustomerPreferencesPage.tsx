@@ -133,78 +133,84 @@ export function CustomerPreferencesPage() {
     setRefreshing(false);
   };
 
-  const addCategoryPreference = () => {
-    const newCatPref: CategoryPreference = { category: availableCategories[0], quantity: 1 };
-    setNewPreference({
-      ...newPreference,
-      category_preferences: [...(newPreference.category_preferences || []), newCatPref]
-    });
-  };
-
-  const updateCategoryPreference = (index: number, field: keyof CategoryPreference, value: string | number) => {
-    const updated = [...(newPreference.category_preferences || [])];
-    updated[index] = { ...updated[index], [field]: value };
-    setNewPreference({
-      ...newPreference,
-      category_preferences: updated
-    });
-  };
-
-  const removeCategoryPreference = (index: number) => {
-    const updated = [...(newPreference.category_preferences || [])];
-    updated.splice(index, 1);
-    setNewPreference({
-      ...newPreference,
-      category_preferences: updated
-    });
-  };
-
-  const handleCreatePreference = async () => {
+  const handleCreateGlobalPreference = async () => {
     try {
       const preferenceData = {
         wine_club_id: KING_FROSCH_ID,
-        customer_id: newPreference.customer_id!, // Square customer ID
-        customer_name: newPreference.customer_name!,
-        customer_email: newPreference.customer_email!,
-        preference_type: newPreference.preference_type!,
-        category_preferences: newPreference.category_preferences || [],
-        custom_wine_assignments: newPreference.custom_wine_assignments, // Square item IDs
-        notes: newPreference.notes
+        name: newGlobalPreference.name!,
+        description: newGlobalPreference.description!,
+        categories: newGlobalPreference.categories || []
       };
 
-      const response = await api.createCustomerPreference(preferenceData);
+      // In production, this would call the API
+      const newPreference: GlobalPreference = {
+        id: `pref_${Date.now()}`,
+        name: preferenceData.name,
+        description: preferenceData.description,
+        categories: preferenceData.categories,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
       
-      if (response.preference) {
-        setPreferences([...preferences, response.preference]);
-        setIsCreateModalOpen(false);
-        setNewPreference({
-          customer_id: "",
-          customer_name: "",
-          customer_email: "",
-          preference_type: 'category_based',
-          category_preferences: [],
-          custom_wine_assignments: [],
-          notes: ""
-        });
-      }
+      setGlobalPreferences([...globalPreferences, newPreference]);
+      setIsCreateGlobalModalOpen(false);
+      setNewGlobalPreference({
+        name: "",
+        description: "",
+        categories: []
+      });
     } catch (error) {
-      console.error('Failed to create preference:', error);
+      console.error('Failed to create global preference:', error);
     }
   };
+
+  const handleCreateCustomerAssignment = async () => {
+    try {
+      const assignmentData = {
+        wine_club_id: KING_FROSCH_ID,
+        customer_id: newAssignment.customer_id!,
+        customer_name: newAssignment.customer_name!,
+        customer_email: newAssignment.customer_email!,
+        preference_type: newAssignment.preference_type!,
+        global_preference_id: newAssignment.global_preference_id,
+        custom_wine_ids: newAssignment.custom_wine_ids,
+        notes: newAssignment.notes
+      };
+
+      // In production, this would call the API
+      const newAssignmentObj: CustomerPreferenceAssignment = {
+        id: `assign_${Date.now()}`,
+        customer_id: assignmentData.customer_id,
+        customer_name: assignmentData.customer_name,
+        customer_email: assignmentData.customer_email,
+        preference_type: assignmentData.preference_type,
+        global_preference_id: assignmentData.global_preference_id,
+        custom_wine_ids: assignmentData.custom_wine_ids,
+        notes: assignmentData.notes,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      setCustomerAssignments([...customerAssignments, newAssignmentObj]);
+      setIsCreateAssignmentModalOpen(false);
+      setNewAssignment({
+        customer_id: "",
+        customer_name: "",
+        customer_email: "",
+        preference_type: 'global_preference',
+        global_preference_id: "",
+        custom_wine_ids: [],
+        notes: ""
+      });
+    } catch (error) {
+      console.error('Failed to create customer assignment:', error);
+    }
+  };
+
 
   useEffect(() => {
     fetchData();
   }, []);
-
-  // Calculate stats
-  const categoryStats = preferences.filter(p => p.preference_type === 'category_based').length;
-  const customStats = preferences.filter(p => p.preference_type === 'custom').length;
-  const totalBottlesRequested = preferences.reduce((sum, pref) => {
-    if (pref.preference_type === 'category_based') {
-      return sum + pref.category_preferences.reduce((catSum, cat) => catSum + cat.quantity, 0);
-    }
-    return sum + (pref.custom_wine_assignments?.length || 0);
-  }, 0);
 
   return (
     <div className="space-y-6">
@@ -411,6 +417,203 @@ export function CustomerPreferencesPage() {
                             <User className="h-4 w-4 text-muted-foreground" />
                             {customerCount}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="customer-assignments" className="space-y-6">
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <div>
+                <CardTitle>Customer Assignments</CardTitle>
+                <CardDescription>
+                  Assign customers to global preferences or give them custom wine assignments for every shipment.
+                </CardDescription>
+              </div>
+              <Dialog open={isCreateAssignmentModalOpen} onOpenChange={setIsCreateAssignmentModalOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Assign Customer
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Assign Customer Preference</DialogTitle>
+                    <DialogDescription>
+                      Assign a customer to a global preference or give them custom wine assignments.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="assignment-customer-name">Customer Name</Label>
+                        <Input
+                          id="assignment-customer-name"
+                          value={newAssignment.customer_name || ""}
+                          onChange={(e) => setNewAssignment({...newAssignment, customer_name: e.target.value})}
+                          placeholder="John Smith"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="assignment-customer-email">Customer Email</Label>
+                        <Input
+                          id="assignment-customer-email"
+                          type="email"
+                          value={newAssignment.customer_email || ""}
+                          onChange={(e) => setNewAssignment({...newAssignment, customer_email: e.target.value})}
+                          placeholder="john@example.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="assignment-type">Assignment Type</Label>
+                      <Select 
+                        value={newAssignment.preference_type || "global_preference"} 
+                        onValueChange={(value: 'global_preference' | 'custom_wines') => setNewAssignment({...newAssignment, preference_type: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="global_preference">Global Preference (Customer chooses from your defined preferences)</SelectItem>
+                          <SelectItem value="custom_wines">Custom Wine Assignment (You assign specific wines for every shipment)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {newAssignment.preference_type === 'global_preference' && (
+                      <div>
+                        <Label htmlFor="global-preference-select">Select Global Preference</Label>
+                        <Select 
+                          value={newAssignment.global_preference_id || ""} 
+                          onValueChange={(value) => setNewAssignment({...newAssignment, global_preference_id: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a global preference" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {globalPreferences.map(pref => (
+                              <SelectItem key={pref.id} value={pref.id}>
+                                {pref.name} - {pref.description}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Customer will receive wines from the categories assigned to this preference.
+                        </p>
+                      </div>
+                    )}
+
+                    {newAssignment.preference_type === 'custom_wines' && (
+                      <div>
+                        <Label htmlFor="custom-wine-instructions">Custom Wine Assignment Instructions</Label>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          For custom wine assignments, you'll manage specific wines in the Shipment Builder. 
+                          This customer will receive wines you specifically assign to them for each shipment.
+                        </p>
+                        <Input
+                          id="custom-wine-instructions"
+                          value={newAssignment.notes || ""}
+                          onChange={(e) => setNewAssignment({...newAssignment, notes: e.target.value})}
+                          placeholder="Special instructions for custom wine selection..."
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <Label htmlFor="assignment-notes">Notes (Optional)</Label>
+                      <Input
+                        id="assignment-notes"
+                        value={newAssignment.notes || ""}
+                        onChange={(e) => setNewAssignment({...newAssignment, notes: e.target.value})}
+                        placeholder="Additional notes about this customer assignment..."
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setIsCreateAssignmentModalOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleCreateCustomerAssignment} 
+                        disabled={!newAssignment.customer_name || !newAssignment.customer_email || 
+                          (newAssignment.preference_type === 'global_preference' && !newAssignment.global_preference_id)}
+                      >
+                        Create Assignment
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Assignment Type</TableHead>
+                    <TableHead>Preference/Assignment</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {customerAssignments.map((assignment) => {
+                    const globalPref = globalPreferences.find(p => p.id === assignment.global_preference_id);
+                    
+                    return (
+                      <TableRow key={assignment.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{assignment.customer_name}</p>
+                            <p className="text-sm text-muted-foreground">{assignment.customer_email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={assignment.preference_type === 'custom_wines' ? 'default' : 'outline'}>
+                            {assignment.preference_type === 'custom_wines' ? 'Custom Wines' : 'Global Preference'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {assignment.preference_type === 'global_preference' ? (
+                            <div>
+                              <p className="font-medium">{globalPref?.name || 'Unknown Preference'}</p>
+                              <p className="text-sm text-muted-foreground">{globalPref?.description}</p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {globalPref?.categories.map((category, idx) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs">
+                                    {category}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">Custom wine assignment</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {assignment.notes || "No notes"}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
