@@ -79,17 +79,19 @@ export function CustomerPreferencesPage() {
       const inventoryRes = await api.getLiveInventory(KING_FROSCH_ID, 'all', 0);
       const categories = new Set<string>();
       
-      // Use the availableCategories from Square response
-      if (inventoryRes.availableCategories) {
-        inventoryRes.availableCategories.forEach(cat => {
-          if (cat && typeof cat === 'string') {
-            categories.add(cat);
-          }
-        });
-      }
+      // Filter out wines with zero inventory and uncategorized
+      const winesWithInventory = inventoryRes.wines?.filter(wine => {
+        const hasInventory = wine.total_inventory && wine.total_inventory > 0;
+        const isNotUncategorized = wine.category_name && 
+          wine.category_name.toLowerCase() !== 'uncategorized' &&
+          wine.category_name.toLowerCase() !== 'uncat' &&
+          wine.category_name.toLowerCase() !== 'misc' &&
+          wine.category_name.toLowerCase() !== 'other';
+        return hasInventory && isNotUncategorized;
+      }) || [];
       
-      // Also extract from individual wine category_name
-      inventoryRes.wines?.forEach(wine => {
+      // Extract categories only from wines with inventory
+      winesWithInventory.forEach(wine => {
         if (wine.category_name) {
           categories.add(wine.category_name);
         }
@@ -99,10 +101,23 @@ export function CustomerPreferencesPage() {
         if (wine.sweetness) categories.add(wine.sweetness);
       });
       
-      setAvailableCategories(Array.from(categories).sort());
+      // Filter out common unwanted categories
+      const filteredCategories = Array.from(categories).filter(cat => {
+        const lowerCat = cat.toLowerCase();
+        return !lowerCat.includes('uncategorized') &&
+               !lowerCat.includes('uncat') &&
+               !lowerCat.includes('misc') &&
+               !lowerCat.includes('other') &&
+               !lowerCat.includes('test') &&
+               !lowerCat.includes('sample') &&
+               cat.trim().length > 0;
+      });
       
-      console.log('Loaded categories:', Array.from(categories).sort());
-      console.log('Inventory response:', inventoryRes);
+      setAvailableCategories(filteredCategories.sort());
+      
+      console.log('Loaded categories (filtered):', filteredCategories);
+      console.log('Wines with inventory:', winesWithInventory.length);
+      console.log('Total wines:', inventoryRes.wines?.length || 0);
       
       // Load customer assignments from KV store
       try {
