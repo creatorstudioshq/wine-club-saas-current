@@ -34,7 +34,7 @@ const navigation = [
   { name: "Preferences", icon: Heart, id: "preferences" },
   { name: "Shipments", icon: Truck, id: "shipments" },
   { name: "Marketing", icon: Mail, id: "marketing" },
-  { name: "Setup", icon: Settings, id: "client-setup" },
+  { name: "Square Config", icon: Settings, id: "square-config" },
 ];
 
 const mockClients = [
@@ -110,7 +110,7 @@ export function AdminLayout({ children, currentPage, onPageChange }: AdminLayout
                     </SidebarMenuButton>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => onPageChange("client-setup")}>
+                    <DropdownMenuItem onClick={() => onPageChange("square-config")}>
                       <Building className="h-4 w-4 mr-2" />
                       Configure {currentClient?.name}
                     </DropdownMenuItem>
