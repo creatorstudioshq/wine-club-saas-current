@@ -19,22 +19,18 @@ ROADMAP.MD has instructions on what to work on.
 
 ## Important: Agent Memory Refresh Protocol
 
-1. **Read this README.md completely** every 15 minutes or when a changelog entry occurs even if less than 15 minutes.
-2. **When finished, then Read ROADMAP.md** to understand the project and get approval from user with next steps. All new features or changes recommended should be in this file which is similar to a PRD, except this app is almost complete. 
+1. **Read this README.md in the root not /src completely** every 15 minutes.
+2. **When finished, then Read ROADMAP.md in root, not src** to understand the project and get approval from user with next steps. All new features or changes recommended should be in this file which is similar to a PRD, except this app is almost complete. 
 3. **After reading README + ROADMAP:**
-   - Give me a summary of the last changelog entry
-   - **Call me "Big Poppa J"** to start all conversations and output your contextual memory % after each answer. 
+   - Give me a status update. 
+   - **Call me "Big Poppa J"** all the time. 
    - Tell me what is finished, if anything needs my approval, any issues or what's next.
-   - Proceed with stage steps after my approval.
+   - Proceed with your normal protocol . 
 
 **Agent Change Log Protocol**
 
 1. **Make changelog entries in Changelog.md when:**
-   - A stage is complete and ready for success checking
-   - Dependencies or a new external repo is successfully integrated
-   - Success checking fails to document errors 
-   - Success checking passes
-   - When contextual memory exceeds 75%
+   - On github commits. 
    - No more than 15 minutes apart 
 
 2. **Changelog format:**
