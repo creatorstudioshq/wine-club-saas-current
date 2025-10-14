@@ -76,9 +76,17 @@ interface EmbeddedSignupProps {
   }) => void;
   isLoading?: boolean;
   className?: string;
+  clubLogo?: string; // Optional club logo URL
+  clubName?: string; // Optional club name
 }
 
-export function EmbeddedSignup({ onSignup, isLoading, className = "" }: EmbeddedSignupProps) {
+export function EmbeddedSignup({ 
+  onSignup, 
+  isLoading, 
+  className = "", 
+  clubLogo, 
+  clubName = "Our Wine Club" 
+}: EmbeddedSignupProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [preferences, setPreferences] = useState<string[]>(["mixed"]);
@@ -135,11 +143,11 @@ export function EmbeddedSignup({ onSignup, isLoading, className = "" }: Embedded
               <p className="text-gray-600">Select the perfect wine club membership for you</p>
             </div>
             
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
               {PLANS.map((plan) => (
                 <Card 
                   key={plan.id}
-                  className={`cursor-pointer transition-all ${
+                  className={`cursor-pointer transition-all w-full ${
                     selectedPlan === plan.id 
                       ? 'ring-2 ring-primary shadow-md' 
                       : 'hover:shadow-md'
@@ -311,13 +319,31 @@ export function EmbeddedSignup({ onSignup, isLoading, className = "" }: Embedded
   };
 
   return (
-    <div className={`max-w-2xl mx-auto ${className}`}>
+    <div className={`w-full max-w-6xl mx-auto px-4 ${className}`}>
       <Card>
         <CardHeader className="text-center pb-6">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mb-4">
-            <Wine className="w-8 h-8 text-white" />
+          <div className="flex justify-center mb-4">
+            {clubLogo ? (
+              <img 
+                src={clubLogo} 
+                alt={`${clubName} Logo`}
+                className="max-h-[300px] w-auto object-contain"
+                onError={(e) => {
+                  // Fallback to default icon if image fails to load
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div 
+              className={`mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center ${
+                clubLogo ? 'hidden' : ''
+              }`}
+            >
+              <Wine className="w-8 h-8 text-white" />
+            </div>
           </div>
-          <CardTitle className="text-3xl font-serif">Join Our Wine Club</CardTitle>
+          <CardTitle className="text-3xl font-serif">Join {clubName}</CardTitle>
           <CardDescription className="text-lg">
             Discover exceptional wines delivered to your door
           </CardDescription>
