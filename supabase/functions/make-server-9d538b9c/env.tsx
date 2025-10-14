@@ -34,6 +34,13 @@ export const isServerEnvConfigured = {
 
 // Auto-detect Square environment based on variable names
 export const getSquareEnvironment = () => {
+  // Check if we have production token (starts with EAAAl) - prioritize this
+  const accessToken = Deno.env.get("SQUARE_ACCESS_TOKEN");
+  if (accessToken && accessToken.startsWith("EAAAl")) {
+    return 'production';
+  }
+  
+  // Check if we have sandbox-specific variables
   const hasSandboxVars = !!(
     Deno.env.get("SQUARE_SANDBOX_APPLICATION_ID") || 
     Deno.env.get("SQUARE_SANDBOX_APPLICATION_SECRET") ||
@@ -41,7 +48,13 @@ export const getSquareEnvironment = () => {
     Deno.env.get("SQUARE_SANDBOX_LOCATION_ID")
   );
   
-  return hasSandboxVars ? 'sandbox' : 'production';
+  // If we have sandbox-specific variables, use sandbox
+  if (hasSandboxVars) {
+    return 'sandbox';
+  }
+  
+  // Default to production
+  return 'production';
 };
 
 // Get Square environment URL
