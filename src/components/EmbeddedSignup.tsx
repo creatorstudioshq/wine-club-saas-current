@@ -79,7 +79,8 @@ interface EmbeddedSignupProps {
 }
 
 export function EmbeddedSignup({ onSignup, isLoading, className = "" }: EmbeddedSignupProps) {
-  const [selectedPlan, setSelectedPlan] = useState<string>("silver");
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [preferences, setPreferences] = useState<string[]>(["mixed"]);
   const [frequency, setFrequency] = useState<string>("quarterly");
   const [formData, setFormData] = useState({
@@ -96,88 +97,89 @@ export function EmbeddedSignup({ onSignup, isLoading, className = "" }: Embedded
     );
   };
 
+  const handleNextStep = () => {
+    if (currentStep === 1 && selectedPlan) {
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
+      setCurrentStep(3);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSignup({
-      ...formData,
-      planId: selectedPlan,
-      preferences,
-      frequency,
-    });
+    if (currentStep === 3) {
+      onSignup({
+        ...formData,
+        planId: selectedPlan,
+        preferences,
+        frequency,
+      });
+    }
   };
 
   const selectedPlanDetails = PLANS.find(p => p.id === selectedPlan);
 
-  return (
-    <div className={`max-w-2xl mx-auto ${className}`}>
-      <Card>
-        <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mb-4">
-            <Wine className="w-8 h-8 text-white" />
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-serif mb-2">Choose Your Plan</h2>
+              <p className="text-gray-600">Select the perfect wine club membership for you</p>
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-3">
+              {PLANS.map((plan) => (
+                <Card 
+                  key={plan.id}
+                  className={`cursor-pointer transition-all ${
+                    selectedPlan === plan.id 
+                      ? 'ring-2 ring-primary shadow-md' 
+                      : 'hover:shadow-md'
+                  }`}
+                  onClick={() => setSelectedPlan(plan.id)}
+                >
+                  <CardContent className="p-6 text-center">
+                    {plan.popular && (
+                      <Badge className="mb-2">Most Popular</Badge>
+                    )}
+                    <div className="mb-4 mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                      {plan.icon}
+                    </div>
+                    <h4 className="font-serif text-lg mb-2">{plan.name}</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {plan.bottles} bottles, {plan.frequency.toLowerCase()}
+                    </p>
+                    <p className="text-2xl font-bold text-primary mb-2">
+                      ${plan.price}
+                    </p>
+                    <p className="text-sm text-green-600">
+                      {plan.discount}% off retail
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-          <CardTitle className="text-3xl font-serif">Join Our Wine Club</CardTitle>
-          <CardDescription className="text-lg">
-            Discover exceptional wines delivered to your door
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Plan Selection */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-serif">Choose Your Plan</h3>
-              <div className="grid gap-4 md:grid-cols-3">
-                {PLANS.map((plan) => (
-                  <Card 
-                    key={plan.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      selectedPlan === plan.id 
-                        ? 'ring-2 ring-primary shadow-md' 
-                        : ''
-                    }`}
-                    onClick={() => setSelectedPlan(plan.id)}
-                  >
-                    <CardContent className="p-6 text-center">
-                      {plan.popular && (
-                        <Badge className="mb-2">Most Popular</Badge>
-                      )}
-                      <div className="mb-4 mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                        {plan.icon}
-                      </div>
-                      <h4 className="font-serif text-lg mb-2">{plan.name}</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {plan.bottles} bottles, {plan.frequency.toLowerCase()}
-                      </p>
-                      <p className="text-2xl font-bold text-primary mb-2">
-                        ${plan.price}
-                      </p>
-                      <p className="text-sm text-green-600">
-                        {plan.discount}% off retail
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-serif mb-2">Wine Preferences</h2>
+              <p className="text-gray-600">Tell us about your wine preferences</p>
             </div>
 
-            {/* Frequency Selection */}
             <div className="space-y-4">
-              <h3 className="text-lg font-serif">Delivery Frequency</h3>
-              <Select value={frequency} onValueChange={setFrequency}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="quarterly">Quarterly (3 months)</SelectItem>
-                  <SelectItem value="biannual">Bi-Annual (6 months)</SelectItem>
-                  <SelectItem value="annual">Annual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Wine Preferences */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-serif">Wine Preferences</h3>
+              <h3 className="text-lg font-serif">What types of wine do you enjoy?</h3>
               <p className="text-sm text-muted-foreground">
                 Select all that apply - we'll curate your selections accordingly
               </p>
@@ -190,7 +192,7 @@ export function EmbeddedSignup({ onSignup, isLoading, className = "" }: Embedded
                       onCheckedChange={() => handlePreferenceToggle(pref.id)}
                     />
                     <div className="grid gap-1.5 leading-none">
-                      <Label 
+                      <Label
                         htmlFor={pref.id}
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                       >
@@ -205,9 +207,32 @@ export function EmbeddedSignup({ onSignup, isLoading, className = "" }: Embedded
               </div>
             </div>
 
-            {/* Contact Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-serif">Contact Information</h3>
+              <h3 className="text-lg font-serif">Delivery Frequency</h3>
+              <Select value={frequency} onValueChange={setFrequency}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly (3 months)</SelectItem>
+                  <SelectItem value="biannual">Bi-Annual (6 months)</SelectItem>
+                  <SelectItem value="annual">Annual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-serif mb-2">Personal Information</h2>
+              <p className="text-gray-600">Complete your membership details</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
@@ -245,24 +270,24 @@ export function EmbeddedSignup({ onSignup, isLoading, className = "" }: Embedded
                   For SMS updates about your shipments
                 </p>
               </div>
-            </div>
 
-            {/* Summary & Submit */}
-            <div className="border-t pt-6">
-              <div className="bg-muted/50 rounded-lg p-4 mb-6">
-                <h4 className="font-medium mb-2">Your Selection Summary</h4>
-                <div className="text-sm space-y-1">
-                  <p><strong>{selectedPlanDetails?.name}</strong> - {selectedPlanDetails?.bottles} bottles</p>
-                  <p>Delivery: {frequency.charAt(0).toUpperCase() + frequency.slice(1)}</p>
-                  <p>Preferences: {preferences.map(p => 
-                    WINE_PREFERENCES.find(wp => wp.id === p)?.name
-                  ).join(", ")}</p>
-                  <p className="text-primary font-medium">
-                    ${selectedPlanDetails?.price} per shipment ({selectedPlanDetails?.discount}% off retail)
-                  </p>
+              {/* Selected Plan Summary */}
+              {selectedPlanDetails && (
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-medium mb-2">Your Selection Summary</h4>
+                  <div className="text-sm space-y-1">
+                    <p><strong>{selectedPlanDetails.name}</strong> - {selectedPlanDetails.bottles} bottles</p>
+                    <p>Delivery: {frequency.charAt(0).toUpperCase() + frequency.slice(1)}</p>
+                    <p>Preferences: {preferences.map(p => 
+                      WINE_PREFERENCES.find(wp => wp.id === p)?.name
+                    ).join(", ")}</p>
+                    <p className="text-primary font-medium">
+                      ${selectedPlanDetails.price} per shipment ({selectedPlanDetails.discount}% off retail)
+                    </p>
+                  </div>
                 </div>
-              </div>
-              
+              )}
+
               <Button 
                 type="submit" 
                 size="lg" 
@@ -276,8 +301,69 @@ export function EmbeddedSignup({ onSignup, isLoading, className = "" }: Embedded
                 You'll add your payment method securely with Square on the next step.
                 No charges until your first shipment ships.
               </p>
-            </div>
-          </form>
+            </form>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className={`max-w-2xl mx-auto ${className}`}>
+      <Card>
+        <CardHeader className="text-center pb-6">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mb-4">
+            <Wine className="w-8 h-8 text-white" />
+          </div>
+          <CardTitle className="text-3xl font-serif">Join Our Wine Club</CardTitle>
+          <CardDescription className="text-lg">
+            Discover exceptional wines delivered to your door
+          </CardDescription>
+          
+          {/* Step Indicator */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            {[1, 2, 3].map((step) => (
+              <div
+                key={step}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step === currentStep
+                    ? 'bg-primary text-white'
+                    : step < currentStep
+                    ? 'bg-primary/20 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {step}
+              </div>
+            ))}
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          {renderStepContent()}
+          
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-8">
+            <Button
+              variant="outline"
+              onClick={handlePrevStep}
+              disabled={currentStep === 1}
+            >
+              Previous
+            </Button>
+            
+            {currentStep < 3 && (
+              <Button
+                onClick={handleNextStep}
+                disabled={currentStep === 1 && !selectedPlan}
+                className="w-full"
+              >
+                Next
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
