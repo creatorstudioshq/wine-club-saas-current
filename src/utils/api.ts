@@ -145,7 +145,11 @@ export const api = {
       },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error(`Square config save failed: ${res.status}`);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Square config save error:', errorText);
+      throw new Error(`Square config save failed: ${res.status} - ${errorText}`);
+    }
     return res.json();
   },
 };

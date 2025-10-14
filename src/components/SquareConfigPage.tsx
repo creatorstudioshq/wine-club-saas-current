@@ -48,6 +48,12 @@ export function SquareConfigPage() {
     setMessage("");
     
     try {
+      console.log('Saving Square config:', {
+        wine_club_id: KING_FROSCH_ID,
+        square_location_id: locationId.trim(),
+        square_access_token: productionKey.trim().substring(0, 10) + '...'
+      });
+      
       const response = await api.saveSquareConfig({
         wine_club_id: KING_FROSCH_ID,
         square_location_id: locationId.trim(),
@@ -112,7 +118,7 @@ export function SquareConfigPage() {
               placeholder="EAAAl... (Production access token)"
             />
             <p className="text-sm text-gray-600">
-              Your access token: EAAAl82tQ_PjQ6qhp6TcHQOFORmFqRWsDGpUCBNMY37GR3qTe5YZ2df86IsgZSne
+              Enter your Square production access token (starts with EAAAl...)
             </p>
           </div>
 
