@@ -413,11 +413,11 @@ export function PlansPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">1 bottle</SelectItem>
-                            <SelectItem value="3">3 bottles</SelectItem>
-                            <SelectItem value="6">6 bottles</SelectItem>
-                            <SelectItem value="12">12 bottles</SelectItem>
-                            <SelectItem value="24">24 bottles</SelectItem>
+                            {Array.from({ length: 12 }, (_, i) => i + 1).map(num => (
+                              <SelectItem key={num} value={num.toString()}>
+                                {num} bottle{num !== 1 ? 's' : ''}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
