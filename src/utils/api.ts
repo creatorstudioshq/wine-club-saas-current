@@ -57,6 +57,19 @@ export const api = {
     return res.json();
   },
 
+  async updateMember(memberId: string, data: any) {
+    const res = await fetch(`${BASE_URL}/members/${memberId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`Member update failed: ${res.status}`);
+    return res.json();
+  },
+
   // Plans
   async getPlans(wineClubId: string) {
     const res = await fetch(`${BASE_URL}/plans/${wineClubId}`, {

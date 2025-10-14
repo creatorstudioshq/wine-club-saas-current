@@ -36,47 +36,7 @@ interface CustomerPreference {
 // No hardcoded categories - pulled live from Square catalog
 
 // Sample preferences data - in production this would come from KV store
-const samplePreferences: CustomerPreference[] = [
-  {
-    id: "pref-1",
-    customer_id: "square-customer-123", // Square customer ID
-    customer_name: "John Smith",
-    customer_email: "john@example.com",
-    preference_type: "category_based",
-    category_preferences: [
-      { category: "Dry Red", quantity: 3 },
-      { category: "Dry White", quantity: 3 }
-    ],
-    notes: "Prefers bold reds and crisp whites",
-    created_at: "2024-01-15T10:00:00Z",
-    updated_at: "2024-01-15T10:00:00Z"
-  },
-  {
-    id: "pref-2", 
-    customer_id: "square-customer-456", // Square customer ID
-    customer_name: "Sarah Johnson",
-    customer_email: "sarah@example.com",
-    preference_type: "category_based",
-    category_preferences: [
-      { category: "Sweet Red", quantity: 6 }
-    ],
-    notes: "Only sweet red wines",
-    created_at: "2024-01-10T14:30:00Z",
-    updated_at: "2024-01-20T09:15:00Z"
-  },
-  {
-    id: "pref-3",
-    customer_id: "square-customer-789", // Square customer ID
-    customer_name: "Michael Brown",
-    customer_email: "michael@example.com",
-    preference_type: "custom",
-    category_preferences: [],
-    custom_wine_assignments: ["SQUARE_ITEM_ID_1", "SQUARE_ITEM_ID_2", "SQUARE_ITEM_ID_3"], // Square item IDs
-    notes: "Custom selection - specific Square item IDs assigned",
-    created_at: "2024-01-05T16:45:00Z",
-    updated_at: "2024-01-25T11:30:00Z"
-  }
-];
+const samplePreferences: CustomerPreference[] = [];
 
 export function CustomerPreferencesPage() {
   const [activeTab, setActiveTab] = useState("preferences");
@@ -228,7 +188,7 @@ export function CustomerPreferencesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>Customer Preferences</h1>
+          <h1>Custom Shipments</h1>
           <p className="text-muted-foreground">
             Manage customer wine preferences for subscription shipments.
           </p>
@@ -247,7 +207,7 @@ export function CustomerPreferencesPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="preferences">Customer Preferences</TabsTrigger>
+          <TabsTrigger value="preferences">Custom Shipments</TabsTrigger>
           <TabsTrigger value="categories">Category Management</TabsTrigger>
         </TabsList>
 
@@ -310,7 +270,7 @@ export function CustomerPreferencesPage() {
           <Card>
             <CardHeader className="flex items-center justify-between">
               <div>
-                <CardTitle>Customer Preferences</CardTitle>
+                <CardTitle>Custom Shipments</CardTitle>
                 <CardDescription>
                   Manage individual customer wine preferences and custom assignments.
                 </CardDescription>

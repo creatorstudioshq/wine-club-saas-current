@@ -18,6 +18,8 @@ export function MembersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("all");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState([]);
   const [plans, setPlans] = useState([]);
@@ -47,6 +49,22 @@ export function MembersPage() {
     setRefreshing(true);
     await fetchData();
     setRefreshing(false);
+  };
+
+  const handleEditMember = (member) => {
+    setEditingMember(member);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateMember = async () => {
+    try {
+      await api.updateMember(editingMember.id, editingMember);
+      await fetchData();
+      setIsEditModalOpen(false);
+      setEditingMember(null);
+    } catch (error) {
+      console.error('Failed to update member:', error);
+    }
   };
 
   useEffect(() => {
@@ -238,7 +256,11 @@ export function MembersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditMember(member)}
+                      >
                         Edit
                       </Button>
                     </TableCell>
@@ -255,6 +277,90 @@ export function MembersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Member Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Member</DialogTitle>
+            <DialogDescription>
+              Update member details and subscription plan.
+            </DialogDescription>
+          </DialogHeader>
+          {editingMember && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  value={editingMember.name || ''}
+                  onChange={(e) => setEditingMember({...editingMember, name: e.target.value})}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  value={editingMember.email || ''}
+                  onChange={(e) => setEditingMember({...editingMember, email: e.target.value})}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="plan" className="text-right">
+                  Plan
+                </Label>
+                <Select 
+                  value={editingMember.subscription_plan_id || ''} 
+                  onValueChange={(value) => setEditingMember({...editingMember, subscription_plan_id: value})}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a plan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {plans.map((plan) => (
+                      <SelectItem key={plan.id} value={plan.id}>
+                        {plan.name} - {plan.bottle_count} bottles
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">
+                  Status
+                </Label>
+                <Select 
+                  value={editingMember.status || 'active'} 
+                  onValueChange={(value) => setEditingMember({...editingMember, status: value})}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateMember}>
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
