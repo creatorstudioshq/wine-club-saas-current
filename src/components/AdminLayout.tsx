@@ -13,7 +13,8 @@ import {
   Mail,
   Shield,
   AlertCircle,
-  Calendar
+  Calendar,
+  Code
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "./ui/sidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
