@@ -431,6 +431,81 @@ app.get("/make-server-9d538b9c/square/customers", async (c) => {
   }
 });
 
+// Sync Square customers with wine club members
+app.post("/make-server-9d538b9c/square/sync-customers", async (c) => {
+  try {
+    const { wine_club_id } = await c.req.json();
+    
+    // Get Square customers
+    const squareResult = await squareHelpers.listCustomers();
+    if (!squareResult.success) {
+      return c.json({ error: squareResult.error }, 500);
+    }
+    
+    const squareCustomers = squareResult.customers || [];
+    const syncedMembers = [];
+    
+    // For each Square customer, create or update member
+    for (const customer of squareCustomers) {
+      if (customer.email_address?.email_address) {
+        const memberData = {
+          wine_club_id,
+          email: customer.email_address.email_address,
+          name: customer.given_name && customer.family_name 
+            ? `${customer.given_name} ${customer.family_name}`
+            : customer.given_name || customer.family_name || 'Unknown',
+          phone: customer.phone_number?.phone_number || null,
+          square_customer_id: customer.id,
+          has_payment_method: customer.cards && customer.cards.length > 0,
+          status: 'active'
+        };
+        
+        // Check if member already exists
+        const { data: existingMember } = await supabase
+          .from('members')
+          .select('id')
+          .eq('wine_club_id', wine_club_id)
+          .eq('square_customer_id', customer.id)
+          .single();
+        
+        if (existingMember) {
+          // Update existing member
+          const { data: updatedMember, error: updateError } = await supabase
+            .from('members')
+            .update(memberData)
+            .eq('id', existingMember.id)
+            .select()
+            .single();
+          
+          if (!updateError) {
+            syncedMembers.push(updatedMember);
+          }
+        } else {
+          // Create new member
+          const { data: newMember, error: createError } = await supabase
+            .from('members')
+            .insert(memberData)
+            .select()
+            .single();
+          
+          if (!createError) {
+            syncedMembers.push(newMember);
+          }
+        }
+      }
+    }
+    
+    return c.json({ 
+      success: true, 
+      synced_count: syncedMembers.length,
+      members: syncedMembers 
+    });
+  } catch (error) {
+    console.error('Error syncing customers:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
 // Get customer segments (Gold, Silver, Platinum tiers)
 app.get("/make-server-9d538b9c/square/segments", async (c) => {
   try {

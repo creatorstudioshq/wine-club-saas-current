@@ -184,12 +184,25 @@ export const api = {
     return res.json();
   },
 
-  // Square Configuration
-  async getSquareConfig(wineClubId: string) {
-    const res = await fetch(`${BASE_URL}/square-config/${wineClubId}`, {
+  // Square Customers
+  async getSquareCustomers() {
+    const res = await fetch(`${BASE_URL}/square/customers`, {
       headers: { Authorization: `Bearer ${publicAnonKey}` },
     });
-    if (!res.ok) throw new Error(`Square config fetch failed: ${res.status}`);
+    if (!res.ok) throw new Error(`Square customers fetch failed: ${res.status}`);
+    return res.json();
+  },
+
+  async syncSquareCustomers(wineClubId: string) {
+    const res = await fetch(`${BASE_URL}/square/sync-customers`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ wine_club_id: wineClubId }),
+    });
+    if (!res.ok) throw new Error(`Square customers sync failed: ${res.status}`);
     return res.json();
   },
 

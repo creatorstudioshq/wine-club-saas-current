@@ -35,6 +35,10 @@ export function MembersPage() {
       
       setMembers(membersRes.members || []);
       setPlans(plansRes.plans || []);
+      
+      // Debug: Log the actual member data
+      console.log('Members data:', membersRes.members);
+      console.log('Plans data:', plansRes.plans);
     } catch (error) {
       console.error('Failed to fetch members data:', error);
       // Graceful fallback - continue with empty arrays
@@ -67,6 +71,20 @@ export function MembersPage() {
     }
   };
 
+  const handleSyncFromSquare = async () => {
+    try {
+      setRefreshing(true);
+      await api.syncSquareCustomers(KING_FROSCH_ID);
+      await fetchData(); // Refresh the members list
+      alert('Successfully synced members from Square!');
+    } catch (error) {
+      console.error('Failed to sync from Square:', error);
+      alert('Failed to sync from Square. Check console for details.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -89,6 +107,14 @@ export function MembersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleSyncFromSquare}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Sync from Square
+          </Button>
           <Button 
             variant="outline" 
             onClick={handleRefresh}
