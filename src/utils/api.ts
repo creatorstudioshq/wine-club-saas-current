@@ -126,4 +126,26 @@ export const api = {
     if (!res.ok) throw new Error(`Preference creation failed: ${res.status}`);
     return res.json();
   },
+
+  // Square Configuration
+  async getSquareConfig(wineClubId: string) {
+    const res = await fetch(`${BASE_URL}/square-config/${wineClubId}`, {
+      headers: { Authorization: `Bearer ${publicAnonKey}` },
+    });
+    if (!res.ok) throw new Error(`Square config fetch failed: ${res.status}`);
+    return res.json();
+  },
+
+  async saveSquareConfig(data: any) {
+    const res = await fetch(`${BASE_URL}/square-config`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`Square config save failed: ${res.status}`);
+    return res.json();
+  },
 };

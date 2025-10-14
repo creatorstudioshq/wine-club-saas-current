@@ -448,6 +448,51 @@ app.post("/make-server-9d538b9c/square/create-payment", async (c) => {
   }
 });
 
+// Square Configuration Management
+app.get("/make-server-9d538b9c/square-config/:wineClubId", async (c) => {
+  try {
+    const wineClubId = c.req.param('wineClubId');
+    const configKey = `square_config_${wineClubId}`;
+    
+    const config = await kv.get(configKey);
+    
+    return c.json({ config });
+  } catch (error) {
+    console.error('Error fetching Square config:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+app.post("/make-server-9d538b9c/square-config", async (c) => {
+  try {
+    const { wine_club_id, square_location_id, square_access_token } = await c.req.json();
+    const configKey = `square_config_${wine_club_id}`;
+    
+    const config = {
+      wine_club_id,
+      square_location_id,
+      square_access_token,
+      updated_at: new Date().toISOString()
+    };
+    
+    await kv.set(configKey, config);
+    
+    return c.json({ 
+      success: true, 
+      message: "Square configuration saved successfully",
+      config: {
+        wine_club_id: config.wine_club_id,
+        square_location_id: config.square_location_id,
+        square_access_token: config.square_access_token ? '***' + config.square_access_token.slice(-4) : null,
+        updated_at: config.updated_at
+      }
+    });
+  } catch (error) {
+    console.error('Error saving Square config:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
 // Mount Square routes
 app.route("/", squareLiveInventory);
 app.route("/", envStatusRoutes);
