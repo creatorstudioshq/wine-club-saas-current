@@ -47,38 +47,7 @@ interface ClubShipment {
 }
 
 // Sample customer preferences data - in production loaded from KV store
-const samplePreferences: CustomerPreference[] = [
-  {
-    id: "pref-1",
-    customer_name: "John Smith",
-    customer_email: "john@example.com",
-    preference_type: "category_based",
-    category_preferences: [
-      { category: "Red Wine", quantity: 3 },
-      { category: "White Wine", quantity: 3 }
-    ],
-    notes: "Prefers bold reds and crisp whites"
-  },
-  {
-    id: "pref-2", 
-    customer_name: "Sarah Johnson",
-    customer_email: "sarah@example.com",
-    preference_type: "category_based",
-    category_preferences: [
-      { category: "Sweet Red", quantity: 6 }
-    ],
-    notes: "Only sweet red wines"
-  },
-  {
-    id: "pref-3",
-    customer_name: "Michael Brown",
-    customer_email: "michael@example.com",
-    preference_type: "custom",
-    category_preferences: [],
-    custom_wine_assignments: ["SQUARE_ITEM_ID_1", "SQUARE_ITEM_ID_2", "SQUARE_ITEM_ID_3"], // Square item IDs only
-    notes: "Custom selection - specific Square item IDs assigned"
-  }
-];
+const samplePreferences: CustomerPreference[] = [];
 
 export function ShipmentBuilderPage() {
   const [activeTab, setActiveTab] = useState("builder");
