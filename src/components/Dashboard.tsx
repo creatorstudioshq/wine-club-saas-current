@@ -14,22 +14,25 @@ export function Dashboard() {
   const [shipments, setShipments] = useState([]);
   const [plans, setPlans] = useState([]);
   const [inventory, setInventory] = useState([]);
+  const [globalPreferences, setGlobalPreferences] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const [membersRes, shipmentsRes, plansRes, inventoryRes] = await Promise.all([
+        const [membersRes, shipmentsRes, plansRes, inventoryRes, preferencesRes] = await Promise.all([
           api.getMembers(KING_FROSCH_ID).catch(() => ({ members: [] })),
           api.getShipments(KING_FROSCH_ID).catch(() => ({ shipments: [] })),
           api.getPlans(KING_FROSCH_ID).catch(() => ({ plans: [] })),
-          api.getLiveInventory(KING_FROSCH_ID, 'all', 0).catch(() => ({ wines: [] }))
+          api.getLiveInventory(KING_FROSCH_ID, 'all', 0).catch(() => ({ wines: [] })),
+          api.getGlobalPreferences(KING_FROSCH_ID).catch(() => ({ preferences: [] }))
         ]);
 
         setMembers(membersRes.members || []);
         setShipments(shipmentsRes.shipments || []);
         setPlans(plansRes.plans || []);
         setInventory(inventoryRes.wines || []);
+        setGlobalPreferences(preferencesRes.preferences || []);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
         // Graceful fallback
@@ -37,6 +40,7 @@ export function Dashboard() {
         setShipments([]);
         setPlans([]);
         setInventory([]);
+        setGlobalPreferences([]);
       } finally {
         setLoading(false);
       }
@@ -67,6 +71,26 @@ export function Dashboard() {
     return acc;
   }, [] as Array<{id: string, plan: string, count: number, percentage: number}>);
 
+  // Calculate preference distribution
+  const preferenceDistribution = globalPreferences.map(pref => {
+    // Count members who have this preference
+    const preferenceMembers = members.filter(member => {
+      // Check if member has this preference in their wine_preferences
+      const memberPrefs = member.wine_preferences || [];
+      return memberPrefs.includes(pref.id);
+    });
+    
+    const totalMembers = members.length;
+    const percentage = totalMembers > 0 ? Math.round((preferenceMembers.length / totalMembers) * 100) : 0;
+    
+    return {
+      id: pref.id,
+      preference: pref.name,
+      count: preferenceMembers.length,
+      percentage
+    };
+  });
+
   // Calculate total bottles in inventory
   const totalBottles = inventory.reduce((sum, wine) => sum + (wine.total_inventory || 0), 0);
 
@@ -95,7 +119,7 @@ export function Dashboard() {
     },
     {
       title: "Subscription Plans",
-      value: plans.length.toString(),
+      value: planDistribution.length.toString(),
       change: "+0%",
       changeType: "positive" as const,
       icon: Package,
@@ -161,12 +185,12 @@ export function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* Recent Shipments */}
+        {/* Preference Member Distribution */}
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Recent Shipments</CardTitle>
+            <CardTitle>Preference Member Distribution</CardTitle>
             <CardDescription>
-              Latest wine shipment activities across all plans.
+              Member distribution across wine preference groups.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -185,27 +209,21 @@ export function Dashboard() {
                   </div>
                 ))}
               </div>
-            ) : recentShipments.length > 0 ? (
+            ) : preferenceDistribution.length > 0 ? (
               <div className="space-y-4">
-                {recentShipments.map((shipment) => (
-                  <div key={shipment.id} className="flex items-center justify-between">
+                {preferenceDistribution.map((pref) => (
+                  <div key={pref.id} className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div>
-                        <p className="text-sm">{shipment.name}</p>
+                        <p className="text-sm font-medium">{pref.preference}</p>
                         <p className="text-xs text-muted-foreground">
-                          {shipment.itemCount} wine items • {shipment.date}
+                          {pref.count} members • {pref.percentage}% of total
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant={
-                          shipment.status === 'delivered' ? 'default' :
-                          shipment.status === 'shipped' ? 'secondary' :
-                          shipment.status === 'scheduled' ? 'outline' : 'destructive'
-                        }
-                      >
-                        {shipment.status}
+                      <Badge variant="outline">
+                        {pref.count} members
                       </Badge>
                     </div>
                   </div>
@@ -213,7 +231,11 @@ export function Dashboard() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">No shipments created yet.</p>
+                <Wine className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No preference groups created yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Create preference groups in Club Setup to see member distribution
+                </p>
               </div>
             )}
           </CardContent>
