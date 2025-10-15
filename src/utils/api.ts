@@ -323,14 +323,14 @@ export const api = {
     return res.json();
   },
 
-  async createSquareSegment(segmentName: string, description?: string) {
+  async createSquareSegment(segmentName: string, description?: string, wineClubId?: string) {
     const res = await fetch(`${BASE_URL}/square/segments`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${publicAnonKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ segmentName, description }),
+      body: JSON.stringify({ segmentName, description, wine_club_id: wineClubId }),
     });
     if (!res.ok) {
       const errorText = await res.text();
@@ -339,14 +339,14 @@ export const api = {
     return res.json();
   },
 
-  async addCustomerToSquareSegment(segmentId: string, customerId: string) {
+  async addCustomerToSquareSegment(segmentId: string, customerId: string, wineClubId?: string) {
     const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${publicAnonKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ customerId }),
+      body: JSON.stringify({ customerId, wine_club_id: wineClubId }),
     });
     if (!res.ok) {
       const errorText = await res.text();
@@ -355,8 +355,8 @@ export const api = {
     return res.json();
   },
 
-  async removeCustomerFromSquareSegment(segmentId: string, customerId: string) {
-    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers/${customerId}`, {
+  async removeCustomerFromSquareSegment(segmentId: string, customerId: string, wineClubId?: string) {
+    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers/${customerId}?wine_club_id=${wineClubId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${publicAnonKey}` },
     });
@@ -367,11 +367,14 @@ export const api = {
     return res.json();
   },
 
-  async getCustomersInSquareSegment(segmentId: string) {
-    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers`, {
+  async getCustomersInSquareSegment(segmentId: string, wineClubId?: string) {
+    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers?wine_club_id=${wineClubId}`, {
       headers: { Authorization: `Bearer ${publicAnonKey}` },
     });
-    if (!res.ok) throw new Error(`Get customers in segment failed: ${res.status}`);
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Get customers in segment failed: ${res.status} - ${errorText}`);
+    }
     return res.json();
   },
 };

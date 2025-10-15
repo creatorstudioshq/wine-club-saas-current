@@ -1,14 +1,53 @@
 import { serverEnv } from "./env.tsx";
+import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 
-// Helper to get Square config
-function getSquareConfig() {
-  // Use hardcoded King Frosch production credentials
-  const token = serverEnv.KING_FROSCH_SQUARE_ACCESS_TOKEN;
-  const locationId = serverEnv.KING_FROSCH_SQUARE_LOCATION_ID;
-  const environment = 'production'; // Always production for King Frosch
-  const baseUrl = 'https://connect.squareup.com'; // Production URL
+const supabase = createClient(
+  serverEnv.SUPABASE_URL,
+  serverEnv.SUPABASE_SERVICE_ROLE_KEY,
+);
 
-  return { token, locationId, environment, baseUrl };
+// Get Square configuration for a specific wine club
+export async function getSquareConfig(wineClubId: string) {
+  try {
+    // Get wine club's Square credentials from database
+    const { data: wineClub, error } = await supabase
+      .from('wine_clubs')
+      .select('square_location_id, square_access_token')
+      .eq('id', wineClubId)
+      .single();
+
+    if (error || !wineClub) {
+      return { 
+        success: false, 
+        error: 'Wine club not found or Square not configured' 
+      };
+    }
+
+    if (!wineClub.square_location_id || !wineClub.square_access_token) {
+      return { 
+        success: false, 
+        error: 'Square credentials not configured for this wine club' 
+      };
+    }
+
+    const environment = wineClub.square_access_token.includes('sandbox') ? 'sandbox' : 'production';
+    const baseUrl = environment === 'sandbox' 
+      ? 'https://connect.squareupsandbox.com' 
+      : 'https://connect.squareup.com';
+
+    return { 
+      success: true,
+      token: wineClub.square_access_token,
+      locationId: wineClub.square_location_id,
+      environment,
+      baseUrl
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
 }
 
 // Generate idempotency key
@@ -17,13 +56,15 @@ export function generateIdempotencyKey(): string {
 }
 
 // List all customers
-export async function listCustomers() {
-  const { token, baseUrl } = getSquareConfig();
+export async function listCustomers(wineClubId: string) {
+  const configResult = await getSquareConfig(wineClubId);
   
-  if (!token) {
-    return { success: false, error: 'Square API not configured' };
+  if (!configResult.success) {
+    return { success: false, error: configResult.error };
   }
 
+  const { token, baseUrl } = configResult;
+  
   try {
     const response = await fetch(`${baseUrl}/v2/customers`, {
       headers: {
@@ -46,13 +87,15 @@ export async function listCustomers() {
 }
 
 // List customer segments
-export async function listCustomerSegments() {
-  const { token, baseUrl } = getSquareConfig();
+export async function listCustomerSegments(wineClubId: string) {
+  const configResult = await getSquareConfig(wineClubId);
   
-  if (!token) {
-    return { success: false, error: 'Square API not configured' };
+  if (!configResult.success) {
+    return { success: false, error: configResult.error };
   }
 
+  const { token, baseUrl } = configResult;
+  
   try {
     const response = await fetch(`${baseUrl}/v2/customers/segments`, {
       headers: {
@@ -75,13 +118,15 @@ export async function listCustomerSegments() {
 }
 
 // Get specific customer segment
-export async function getCustomerSegment(segmentId: string) {
-  const { token, baseUrl } = getSquareConfig();
+export async function getCustomerSegment(wineClubId: string, segmentId: string) {
+  const configResult = await getSquareConfig(wineClubId);
   
-  if (!token) {
-    return { success: false, error: 'Square API not configured' };
+  if (!configResult.success) {
+    return { success: false, error: configResult.error };
   }
 
+  const { token, baseUrl } = configResult;
+  
   try {
     const response = await fetch(`${baseUrl}/v2/customers/segments/${segmentId}`, {
       headers: {
@@ -104,12 +149,14 @@ export async function getCustomerSegment(segmentId: string) {
 }
 
 // Create customer segment (group)
-export async function createCustomerSegment(segmentName: string, description?: string) {
-  const { token, baseUrl } = getSquareConfig();
+export async function createCustomerSegment(wineClubId: string, segmentName: string, description?: string) {
+  const configResult = await getSquareConfig(wineClubId);
   
-  if (!token) {
-    return { success: false, error: 'Square API not configured' };
+  if (!configResult.success) {
+    return { success: false, error: configResult.error };
   }
+
+  const { token, baseUrl } = configResult;
 
   try {
     const response = await fetch(`${baseUrl}/v2/customers/segments`, {
@@ -140,12 +187,14 @@ export async function createCustomerSegment(segmentName: string, description?: s
 }
 
 // Add customer to segment
-export async function addCustomerToSegment(customerId: string, segmentId: string) {
-  const { token, baseUrl } = getSquareConfig();
+export async function addCustomerToSegment(wineClubId: string, customerId: string, segmentId: string) {
+  const configResult = await getSquareConfig(wineClubId);
   
-  if (!token) {
-    return { success: false, error: 'Square API not configured' };
+  if (!configResult.success) {
+    return { success: false, error: configResult.error };
   }
+
+  const { token, baseUrl } = configResult;
 
   try {
     // First, get the customer to update their segment_ids

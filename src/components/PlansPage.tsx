@@ -156,7 +156,7 @@ export function PlansPage() {
       for (const plan of plansRes.plans || []) {
         if (plan.square_segment_id) {
           try {
-            const segmentRes = await api.getCustomersInSquareSegment(plan.square_segment_id);
+                 const segmentRes = await api.getCustomersInSquareSegment(plan.square_segment_id, KING_FROSCH_ID);
             if (segmentRes.success) {
               groupCounts[plan.id] = segmentRes.count || 0;
             }
@@ -197,10 +197,11 @@ export function PlansPage() {
 
     // Create Square customer group for this plan
     try {
-      const segmentResult = await api.createSquareSegment(
-        `${newPlan.name} Plan Members`,
-        `Customer group for ${newPlan.name} subscription plan members`
-      );
+           const segmentResult = await api.createSquareSegment(
+             `${newPlan.name} Plan Members`,
+             `Customer group for ${newPlan.name} subscription plan members`,
+             KING_FROSCH_ID
+           );
       
       if (segmentResult.success) {
         // Add Square segment ID to plan

@@ -431,7 +431,8 @@ import {
 // List all customers (for importing to wine club)
 app.get("/make-server-9d538b9c/square/customers", async (c) => {
   try {
-    const result = await squareHelpers.listCustomers();
+    const wineClubId = c.req.query('wine_club_id') || KING_FROSCH_ID;
+    const result = await squareHelpers.listCustomers(wineClubId);
     return c.json(result);
   } catch (error) {
     console.error('Error listing customers:', error);
@@ -445,7 +446,7 @@ app.post("/make-server-9d538b9c/square/sync-customers", async (c) => {
     const { wine_club_id } = await c.req.json();
     
     // Get Square customers
-    const squareResult = await squareHelpers.listCustomers();
+    const squareResult = await squareHelpers.listCustomers(wine_club_id);
     if (!squareResult.success) {
       return c.json({ error: squareResult.error }, 500);
     }
@@ -528,9 +529,10 @@ app.get("/make-server-9d538b9c/square/segments", async (c) => {
 // Create customer segment (group) for a plan
 app.post("/make-server-9d538b9c/square/segments", async (c) => {
   try {
-    const { segmentName, description } = await c.req.json();
+    const { segmentName, description, wine_club_id } = await c.req.json();
+    const wineClubId = wine_club_id || KING_FROSCH_ID;
     
-    const result = await squareHelpers.createCustomerSegment(segmentName, description);
+    const result = await squareHelpers.createCustomerSegment(wineClubId, segmentName, description);
     if (!result.success) {
       return c.json({ error: result.error }, 500);
     }
@@ -550,9 +552,10 @@ app.post("/make-server-9d538b9c/square/segments", async (c) => {
 app.post("/make-server-9d538b9c/square/segments/:segmentId/customers", async (c) => {
   try {
     const segmentId = c.req.param('segmentId');
-    const { customerId } = await c.req.json();
+    const { customerId, wine_club_id } = await c.req.json();
+    const wineClubId = wine_club_id || KING_FROSCH_ID;
     
-    const result = await squareHelpers.addCustomerToSegment(customerId, segmentId);
+    const result = await squareHelpers.addCustomerToSegment(wineClubId, customerId, segmentId);
     if (!result.success) {
       return c.json({ error: result.error }, 500);
     }
@@ -573,8 +576,9 @@ app.delete("/make-server-9d538b9c/square/segments/:segmentId/customers/:customer
   try {
     const segmentId = c.req.param('segmentId');
     const customerId = c.req.param('customerId');
+    const wineClubId = c.req.query('wine_club_id') || KING_FROSCH_ID;
     
-    const result = await squareHelpers.removeCustomerFromSegment(customerId, segmentId);
+    const result = await squareHelpers.removeCustomerFromSegment(wineClubId, customerId, segmentId);
     if (!result.success) {
       return c.json({ error: result.error }, 500);
     }
@@ -594,8 +598,9 @@ app.delete("/make-server-9d538b9c/square/segments/:segmentId/customers/:customer
 app.get("/make-server-9d538b9c/square/segments/:segmentId/customers", async (c) => {
   try {
     const segmentId = c.req.param('segmentId');
+    const wineClubId = c.req.query('wine_club_id') || KING_FROSCH_ID;
     
-    const result = await squareHelpers.getCustomersInSegment(segmentId);
+    const result = await squareHelpers.getCustomersInSegment(wineClubId, segmentId);
     if (!result.success) {
       return c.json({ error: result.error }, 500);
     }
