@@ -108,10 +108,10 @@ const defaultShippingZones: ShippingZone[] = [
 
 export function PlansPage() {
   const [activeTab, setActiveTab] = useState("plans");
-  const [plans, setPlans] = useState<Plan[]>(defaultPlans);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [shippingZones, setShippingZones] = useState<ShippingZone[]>(defaultShippingZones);
   const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [squareGroupCounts, setSquareGroupCounts] = useState<{[key: string]: number}>({});
   
@@ -142,13 +142,18 @@ export function PlansPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      
+      // Fetch plans from database
+      const plansRes = await api.getPlans(KING_FROSCH_ID).catch(() => ({ plans: [] }));
+      setPlans(plansRes.plans || []);
+      
       // Fetch members
       const membersRes = await api.getMembers(KING_FROSCH_ID).catch(() => ({ members: [] }));
       setMembers(membersRes.members || []);
       
       // Fetch Square group member counts for each plan
       const groupCounts: {[key: string]: number} = {};
-      for (const plan of plans) {
+      for (const plan of plansRes.plans || []) {
         if (plan.square_segment_id) {
           try {
             const segmentRes = await api.getCustomersInSquareSegment(plan.square_segment_id);
@@ -207,7 +212,35 @@ export function PlansPage() {
       // Continue with plan creation even if Square group creation fails
     }
 
-    setPlans([...plans, plan]);
+    // Save plan to database
+    try {
+      const planData = {
+        wine_club_id: KING_FROSCH_ID,
+        name: plan.name,
+        bottle_count: plan.bottle_count,
+        discount_percentage: plan.discount_percentage,
+        frequency_options: plan.frequency_options,
+        pricing_type: plan.pricing_type,
+        fixed_price: plan.fixed_price,
+        description: plan.description,
+        is_active: plan.is_active,
+        square_segment_id: plan.square_segment_id
+      };
+      
+      const response = await api.createPlan(planData);
+      if (response.plan) {
+        plan.id = response.plan.id; // Use database ID
+        setPlans([...plans, plan]);
+      } else {
+        // Fallback to local state if API fails
+        setPlans([...plans, plan]);
+      }
+    } catch (error) {
+      console.error('Failed to save plan to database:', error);
+      // Fallback to local state
+      setPlans([...plans, plan]);
+    }
+
     setIsCreatePlanOpen(false);
     setNewPlan({
       name: "",

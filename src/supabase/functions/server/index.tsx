@@ -725,6 +725,116 @@ app.post("/make-server-9d538b9c/square-config", async (c) => {
   }
 });
 
+// Global Preferences Endpoints
+// Create global preference
+app.post("/make-server-9d538b9c/global-preferences", async (c) => {
+  try {
+    const { wine_club_id, name, description, categories } = await c.req.json();
+    
+    const preferenceData = {
+      wine_club_id,
+      name,
+      description,
+      categories,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    // Store in KV store
+    const preferenceKey = `global_preference_${wine_club_id}_${Date.now()}`;
+    await kv.set(preferenceKey, preferenceData);
+    
+    const preference = {
+      id: preferenceKey,
+      ...preferenceData
+    };
+    
+    return c.json({ 
+      success: true, 
+      preference,
+      message: "Global preference created successfully" 
+    });
+  } catch (error) {
+    console.error('Error creating global preference:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Get global preferences for wine club
+app.get("/make-server-9d538b9c/global-preferences/:wineClubId", async (c) => {
+  try {
+    const wineClubId = c.req.param('wineClubId');
+    
+    // Get all global preferences for this wine club
+    const { data: preferences } = await kv.list({
+      prefix: `global_preference_${wineClubId}_`
+    });
+    
+    const formattedPreferences = preferences.map(item => ({
+      id: item.key,
+      ...item.value
+    }));
+    
+    return c.json({ 
+      success: true, 
+      preferences: formattedPreferences 
+    });
+  } catch (error) {
+    console.error('Error fetching global preferences:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Update global preference
+app.put("/make-server-9d538b9c/global-preferences/:preferenceId", async (c) => {
+  try {
+    const preferenceId = c.req.param('preferenceId');
+    const { name, description, categories } = await c.req.json();
+    
+    // Get existing preference
+    const { data: existingPreference } = await kv.get(preferenceId);
+    if (!existingPreference) {
+      return c.json({ error: "Preference not found" }, 404);
+    }
+    
+    const updatedPreference = {
+      ...existingPreference,
+      name,
+      description,
+      categories,
+      updated_at: new Date().toISOString()
+    };
+    
+    await kv.set(preferenceId, updatedPreference);
+    
+    return c.json({ 
+      success: true, 
+      preference: { id: preferenceId, ...updatedPreference },
+      message: "Global preference updated successfully" 
+    });
+  } catch (error) {
+    console.error('Error updating global preference:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Delete global preference
+app.delete("/make-server-9d538b9c/global-preferences/:preferenceId", async (c) => {
+  try {
+    const preferenceId = c.req.param('preferenceId');
+    
+    await kv.delete(preferenceId);
+    
+    return c.json({ 
+      success: true, 
+      message: "Global preference deleted successfully" 
+    });
+  } catch (error) {
+    console.error('Error deleting global preference:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
 // Email Service Endpoints
 // Send magic link for authentication
 app.post("/make-server-9d538b9c/email/magic-link", async (c) => {
