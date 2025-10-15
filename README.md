@@ -4,6 +4,22 @@
 
 This is a wine club saas for Square wine clubs. King Frosch is client #1 and will not have a client billing plan. Future clients will pay a monthly fee not determined. 
 
+#Square Key Points
+1) We GET but don't need to store item data and their related object image 
+2) We Get customers that are have joined a Wine Club Group
+3) We Create customer records and attach to the Wine Club group with Plan attribute or we can Create Wine Club Groups for each Plan and Update Customer group membership. WE Create a Member record in our database to store their Square Customer ID to associate Plans, Payments, and Wine Preferences and Status ; active, cancelled 
+3) We Create shipments in our Database with Square Item Ids when a shipment is created or saved as a draft
+4) We Create or Update payment information on a customers Square profile when they join or confirm a wine club shipment.
+5) We Create a Payment in Square when a Customer confirms a shipment or joins the Wine club and Confirms the initial shipment. We create a record of the Payment ID if successful in our database. 
+6) We GET custom payments that match Payment IDS in our database to display a customers Wine Club payment history.
+7) We Create "Wine Club" portal users as the Wine Club management portal is what we sell. 
+8) Wine Club portal members should have a self-service experienc just like othr SaAS :login, reset password, club management functions.
+9) We embed the wine club in the Club owners square accoun for users to eaasily sign up and manage their preferences. 
+10) Success for a member is signing up, paying for and initial shipmen, and being able to change their club memberhship and preferences 
+11) Succees for a club is being able ot setup an account, square integrations, customer preferences, wine club clubs, create a custom set of wines as  shipment specfic customers want each time, pick a date, set wine club frequency, send out an email for users to confirm their wine club shipment items, and be able to pay through the wine club website. 
+
+Square example code is here 
+https://developer.squareup.com/docs/sample-apps
 ## Getting Started
 
 
