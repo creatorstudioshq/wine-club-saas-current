@@ -166,6 +166,26 @@ app.post("/make-server-9d538b9c/plans", async (c) => {
   }
 });
 
+app.delete("/make-server-9d538b9c/plans/:planId", async (c) => {
+  try {
+    const planId = c.req.param('planId');
+    
+    const { error } = await supabase
+      .from('subscription_plans')
+      .delete()
+      .eq('id', planId);
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Delete plan error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
 // Shipments
 app.get("/make-server-9d538b9c/shipments/:wineClubId", async (c) => {
   try {

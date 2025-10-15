@@ -92,6 +92,15 @@ export const api = {
     return res.json();
   },
 
+  async deletePlan(planId: string) {
+    const res = await fetch(`${BASE_URL}/plans/${planId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${publicAnonKey}` },
+    });
+    if (!res.ok) throw new Error(`Plan deletion failed: ${res.status}`);
+    return res.json();
+  },
+
   // Shipments
   async getShipments(wineClubId: string) {
     const res = await fetch(`${BASE_URL}/shipments/${wineClubId}`, {
