@@ -21,6 +21,9 @@ import {
   Globe,
   Key
 } from "lucide-react";
+import { api } from "../utils/api";
+
+const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 interface WineClub {
   id: string;
@@ -31,6 +34,8 @@ interface WineClub {
   monthlyRevenue: number;
   squareConnected: boolean;
   lastActivity: string;
+  email: string;
+  password?: string;
 }
 
 interface SystemStats {
@@ -40,52 +45,66 @@ interface SystemStats {
   activeShipments: number;
 }
 
-const MOCK_WINE_CLUBS: WineClub[] = [
-  {
-    id: "1",
-    name: "King Frosch Wine Club",
-    domain: "kingfrosch.com",
-    status: "active",
-    members: 87,
-    monthlyRevenue: 15420,
-    squareConnected: true,
-    lastActivity: "2 hours ago"
-  },
-  {
-    id: "2", 
-    name: "Vintage Valley Wines",
-    domain: "vintagevalley.wine",
-    status: "setup",
-    members: 0,
-    monthlyRevenue: 0,
-    squareConnected: false,
-    lastActivity: "1 day ago"
-  },
-  {
-    id: "3",
-    name: "Coastal Cellars Club",
-    domain: "coastalcellars.co",
-    status: "active",
-    members: 156,
-    monthlyRevenue: 28900,
-    squareConnected: true,
-    lastActivity: "30 minutes ago"
-  }
-];
-
 export function SuperadminDashboard() {
-  const [wineClubs, setWineClubs] = useState<WineClub[]>(MOCK_WINE_CLUBS);
+  const [wineClubs, setWineClubs] = useState<WineClub[]>([]);
   const [showPasswords, setShowPasswords] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordChangeStatus, setPasswordChangeStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRealData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch real King Frosch data
+        const [membersRes, plansRes, shipmentsRes] = await Promise.all([
+          api.getMembers(KING_FROSCH_ID).catch(() => ({ members: [] })),
+          api.getPlans(KING_FROSCH_ID).catch(() => ({ plans: [] })),
+          api.getShipments(KING_FROSCH_ID).catch(() => ({ shipments: [] }))
+        ]);
+
+        const members = membersRes.members || [];
+        const plans = plansRes.plans || [];
+        const shipments = shipmentsRes.shipments || [];
+
+        // Calculate real revenue (simplified - would need actual payment data)
+        const monthlyRevenue = members.length * 50; // Placeholder calculation
+
+        const kingFroschClub: WineClub = {
+          id: KING_FROSCH_ID,
+          name: "King Frosch Wine Club",
+          domain: "kingfrosch.com",
+          status: "active",
+          members: members.length,
+          monthlyRevenue: monthlyRevenue,
+          squareConnected: true, // Would check actual Square connection
+          lastActivity: "Just now",
+          email: "admin@kingfrosch.com",
+          password: "admin123" // Default password - should be changeable
+        };
+
+        setWineClubs([kingFroschClub]);
+        
+      } catch (error) {
+        console.error('Failed to fetch real data:', error);
+        // Fallback to empty data
+        setWineClubs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRealData();
+  }, []);
 
   const systemStats: SystemStats = {
     totalClubs: wineClubs.length,
     totalMembers: wineClubs.reduce((sum, club) => sum + club.members, 0),
     totalRevenue: wineClubs.reduce((sum, club) => sum + club.monthlyRevenue, 0),
-    activeShipments: 12
+    activeShipments: 0 // Would calculate from real shipments
   };
 
   const getStatusColor = (status: string) => {
