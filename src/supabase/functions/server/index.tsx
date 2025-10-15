@@ -420,6 +420,14 @@ app.post("/make-server-9d538b9c/club-shipments", async (c) => {
 // Advanced Square API Routes (for future payment integration)
 import * as squareHelpers from "./square-helpers.tsx";
 
+// Email Service Integration
+import { 
+  sendMagicLink, 
+  sendWelcomeEmail, 
+  sendShipmentNotification, 
+  sendVerificationEmail 
+} from "./email-service.tsx";
+
 // List all customers (for importing to wine club)
 app.get("/make-server-9d538b9c/square/customers", async (c) => {
   try {
@@ -627,6 +635,116 @@ app.post("/make-server-9d538b9c/square-config", async (c) => {
     });
   } catch (error) {
     console.error('Error saving Square config:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Email Service Endpoints
+// Send magic link for authentication
+app.post("/make-server-9d538b9c/email/magic-link", async (c) => {
+  try {
+    const { email, wine_club_id } = await c.req.json();
+    
+    // Get wine club info
+    const configKey = `square_config_${wine_club_id}`;
+    const { data: config } = await kv.get(configKey);
+    
+    if (!config) {
+      return c.json({ error: "Wine club not found" }, 404);
+    }
+    
+    const wineClubName = config.wine_club_name || "Wine Club";
+    const redirectUrl = `${c.req.url.split('/api')[0]}/auth/callback`;
+    
+    await sendMagicLink(email, redirectUrl, wineClubName);
+    
+    return c.json({ 
+      success: true, 
+      message: "Magic link sent successfully" 
+    });
+  } catch (error) {
+    console.error('Error sending magic link:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Send welcome email for new members
+app.post("/make-server-9d538b9c/email/welcome", async (c) => {
+  try {
+    const { email, name, wine_club_id, plan_name } = await c.req.json();
+    
+    // Get wine club info
+    const configKey = `square_config_${wine_club_id}`;
+    const { data: config } = await kv.get(configKey);
+    
+    if (!config) {
+      return c.json({ error: "Wine club not found" }, 404);
+    }
+    
+    const wineClubName = config.wine_club_name || "Wine Club";
+    
+    await sendWelcomeEmail(email, name, wineClubName, plan_name);
+    
+    return c.json({ 
+      success: true, 
+      message: "Welcome email sent successfully" 
+    });
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Send shipment notification
+app.post("/make-server-9d538b9c/email/shipment-notification", async (c) => {
+  try {
+    const { email, name, wine_club_id, approval_url, deadline } = await c.req.json();
+    
+    // Get wine club info
+    const configKey = `square_config_${wine_club_id}`;
+    const { data: config } = await kv.get(configKey);
+    
+    if (!config) {
+      return c.json({ error: "Wine club not found" }, 404);
+    }
+    
+    const wineClubName = config.wine_club_name || "Wine Club";
+    
+    await sendShipmentNotification(email, name, wineClubName, approval_url, deadline);
+    
+    return c.json({ 
+      success: true, 
+      message: "Shipment notification sent successfully" 
+    });
+  } catch (error) {
+    console.error('Error sending shipment notification:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Send email verification
+app.post("/make-server-9d538b9c/email/verify", async (c) => {
+  try {
+    const { email, wine_club_id, verification_url } = await c.req.json();
+    
+    // Get wine club info
+    const configKey = `square_config_${wine_club_id}`;
+    const { data: config } = await kv.get(configKey);
+    
+    if (!config) {
+      return c.json({ error: "Wine club not found" }, 404);
+    }
+    
+    const wineClubName = config.wine_club_name || "Wine Club";
+    
+    await sendVerificationEmail(email, verification_url, wineClubName);
+    
+    return c.json({ 
+      success: true, 
+      message: "Verification email sent successfully" 
+    });
+  } catch (error) {
+    console.error('Error sending verification email:', error);
     return c.json({ error: error.message }, 500);
   }
 });

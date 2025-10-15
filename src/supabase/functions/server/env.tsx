@@ -19,6 +19,7 @@ export const serverEnv = {
 
   // Optional: Email/SMS
   SENDGRID_API_KEY: Deno.env.get("SENDGRID_API_KEY") || '',
+  RESEND_API_KEY: Deno.env.get("RESEND_API_KEY") || '',
   TWILIO_ACCOUNT_SID: Deno.env.get("TWILIO_ACCOUNT_SID") || '',
   TWILIO_AUTH_TOKEN: Deno.env.get("TWILIO_AUTH_TOKEN") || '',
   TWILIO_PHONE_NUMBER: Deno.env.get("TWILIO_PHONE_NUMBER") || '',
@@ -28,7 +29,7 @@ export const serverEnv = {
 export const isServerEnvConfigured = {
   supabase: !!(serverEnv.SUPABASE_URL && serverEnv.SUPABASE_ANON_KEY && serverEnv.SUPABASE_SERVICE_ROLE_KEY),
   square: !!((serverEnv.SQUARE_APPLICATION_ID || serverEnv.SQUARE_APPLICATION_SECRET) && serverEnv.SQUARE_ACCESS_TOKEN && serverEnv.SQUARE_LOCATION_ID),
-  email: !!serverEnv.SENDGRID_API_KEY,
+  email: !!(serverEnv.RESEND_API_KEY || serverEnv.SENDGRID_API_KEY),
   sms: !!(serverEnv.TWILIO_ACCOUNT_SID && serverEnv.TWILIO_AUTH_TOKEN),
 };
 

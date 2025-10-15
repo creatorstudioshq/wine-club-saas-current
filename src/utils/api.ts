@@ -248,4 +248,69 @@ export const api = {
     }
     return res.json();
   },
+
+  // Email Service Functions
+  async sendMagicLink(email: string, wineClubId: string) {
+    const res = await fetch(`${BASE_URL}/email/magic-link`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, wine_club_id: wineClubId }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Magic link send failed: ${res.status} - ${errorText}`);
+    }
+    return res.json();
+  },
+
+  async sendWelcomeEmail(email: string, name: string, wineClubId: string, planName: string) {
+    const res = await fetch(`${BASE_URL}/email/welcome`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, name, wine_club_id: wineClubId, plan_name: planName }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Welcome email send failed: ${res.status} - ${errorText}`);
+    }
+    return res.json();
+  },
+
+  async sendShipmentNotification(email: string, name: string, wineClubId: string, approvalUrl: string, deadline: string) {
+    const res = await fetch(`${BASE_URL}/email/shipment-notification`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, name, wine_club_id: wineClubId, approval_url: approvalUrl, deadline }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Shipment notification send failed: ${res.status} - ${errorText}`);
+    }
+    return res.json();
+  },
+
+  async sendVerificationEmail(email: string, wineClubId: string, verificationUrl: string) {
+    const res = await fetch(`${BASE_URL}/email/verify`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, wine_club_id: wineClubId, verification_url: verificationUrl }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Verification email send failed: ${res.status} - ${errorText}`);
+    }
+    return res.json();
+  },
 };

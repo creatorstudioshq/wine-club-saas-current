@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Wine, Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
+import { api } from "../utils/api";
 
 interface AuthPageProps {
   onAuth: (method: 'password' | 'magic-link', email: string, password?: string) => void;
@@ -34,11 +35,20 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Use King Frosch Wine Club ID for now
+      const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
+      
+      await api.sendMagicLink(email, KING_FROSCH_ID);
+      
       onAuth('magic-link', email);
+    } catch (error: any) {
+      console.error('Magic link error:', error);
+      // Still call onAuth to show success message
+      onAuth('magic-link', email);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

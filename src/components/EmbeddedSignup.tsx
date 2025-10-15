@@ -9,6 +9,7 @@ import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Wine, Star, Gift, Crown, RotateCcw, Eye } from "lucide-react";
 import { CustomerWineSelection } from "./CustomerWineSelection";
+import { api } from "../utils/api";
 
 interface Plan {
   id: string;
@@ -141,15 +142,33 @@ export function EmbeddedSignup({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (currentStep === 3) {
-      onSignup({
+      const signupData = {
         ...formData,
         planId: selectedPlan,
         preferences,
         frequency,
-      });
+      };
+      
+      // Send welcome email
+      try {
+        const selectedPlanDetails = PLANS.find(p => p.id === selectedPlan);
+        if (selectedPlanDetails) {
+          await api.sendWelcomeEmail(
+            formData.email,
+            formData.name,
+            wineClubId,
+            selectedPlanDetails.name
+          );
+        }
+      } catch (error) {
+        console.error('Welcome email error:', error);
+        // Continue with signup even if email fails
+      }
+      
+      onSignup(signupData);
     }
   };
 
