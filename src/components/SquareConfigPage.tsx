@@ -141,17 +141,18 @@ export function SquareConfigPage() {
     setMessage("");
     
     try {
+      // Only save categories, don't touch credentials
       const response = await api.saveSquareConfig({
         wine_club_id: KING_FROSCH_ID,
-        square_location_id: locationId.trim(),
-        square_access_token: productionKey.trim(),
+        square_location_id: locationId.trim(), // Keep existing
+        square_access_token: productionKey.trim(), // Keep existing
         selected_categories: selectedCategories,
       });
       
-      setMessage("Setup complete! You can now create customer preferences.");
+      setMessage("Categories saved! You can now create customer preferences.");
       setMessageType("success");
       setIsWizardComplete(true);
-      setActiveTab("credentials"); // Switch to tab mode
+      setActiveTab("preferences"); // Go to preferences tab, not credentials
       
     } catch (error: any) {
       console.error("Error saving categories:", error);
@@ -163,11 +164,14 @@ export function SquareConfigPage() {
   };
 
   const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) 
+    setSelectedCategories(prev => {
+      const newSelection = prev.includes(category) 
         ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
+        : [...prev, category];
+      
+      console.log('Category toggled:', category, 'New selection:', newSelection);
+      return newSelection;
+    });
   };
 
   return (
