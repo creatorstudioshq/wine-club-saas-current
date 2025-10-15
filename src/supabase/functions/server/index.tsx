@@ -186,6 +186,78 @@ app.delete("/make-server-9d538b9c/plans/:planId", async (c) => {
   }
 });
 
+// Cleanup duplicate plans for King Frosch
+app.post("/make-server-9d538b9c/plans/cleanup-duplicates", async (c) => {
+  try {
+    const wineClubId = c.req.query('wine_club_id') || KING_FROSCH_ID;
+    
+    // Get all plans for this wine club
+    const { data: plans, error: fetchError } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .eq('wine_club_id', wineClubId)
+      .order('created_at', { ascending: true });
+
+    if (fetchError) {
+      return c.json({ error: fetchError.message }, 500);
+    }
+
+    // Group plans by name and bottle_count
+    const planGroups = {};
+    plans.forEach(plan => {
+      const key = `${plan.name}-${plan.bottle_count}`;
+      if (!planGroups[key]) {
+        planGroups[key] = [];
+      }
+      planGroups[key].push(plan);
+    });
+
+    // Delete older duplicates, keep the newest one with description
+    const plansToDelete = [];
+    Object.values(planGroups).forEach((group: any[]) => {
+      if (group.length > 1) {
+        // Sort by created_at desc, keep the first (newest)
+        group.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        const keepPlan = group[0];
+        const deletePlans = group.slice(1);
+        
+        // If the newest plan has no description, try to find one with description
+        if (!keepPlan.description) {
+          const planWithDescription = group.find(p => p.description);
+          if (planWithDescription) {
+            plansToDelete.push(keepPlan.id);
+            // Keep the one with description
+            deletePlans.splice(deletePlans.indexOf(planWithDescription), 1);
+          }
+        }
+        
+        plansToDelete.push(...deletePlans.map(p => p.id));
+      }
+    });
+
+    // Delete the duplicate plans
+    if (plansToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('subscription_plans')
+        .delete()
+        .in('id', plansToDelete);
+
+      if (deleteError) {
+        return c.json({ error: deleteError.message }, 500);
+      }
+    }
+
+    return c.json({ 
+      success: true, 
+      deletedCount: plansToDelete.length,
+      deletedPlanIds: plansToDelete
+    });
+  } catch (error) {
+    console.error('Cleanup duplicates error:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
 // Shipments
 app.get("/make-server-9d538b9c/shipments/:wineClubId", async (c) => {
   try {

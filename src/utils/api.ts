@@ -101,6 +101,15 @@ export const api = {
     return res.json();
   },
 
+  async cleanupDuplicatePlans(wineClubId?: string) {
+    const res = await fetch(`${BASE_URL}/plans/cleanup-duplicates?wine_club_id=${wineClubId}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${publicAnonKey}` },
+    });
+    if (!res.ok) throw new Error(`Plan cleanup failed: ${res.status}`);
+    return res.json();
+  },
+
   // Shipments
   async getShipments(wineClubId: string) {
     const res = await fetch(`${BASE_URL}/shipments/${wineClubId}`, {
