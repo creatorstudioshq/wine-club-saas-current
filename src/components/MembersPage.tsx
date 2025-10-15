@@ -62,12 +62,32 @@ export function MembersPage() {
 
   const handleUpdateMember = async () => {
     try {
-      await api.updateMember(editingMember.id, editingMember);
+      console.log('Updating member:', editingMember);
+      
+      // Ensure we have the required fields
+      const updateData = {
+        name: editingMember.name,
+        email: editingMember.email,
+        phone: editingMember.phone || null,
+        subscription_plan_id: editingMember.subscription_plan_id || null,
+        status: editingMember.status || 'active',
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('Sending update data:', updateData);
+      
+      const result = await api.updateMember(editingMember.id, updateData);
+      console.log('Update result:', result);
+      
       await fetchData();
       setIsEditModalOpen(false);
       setEditingMember(null);
+      
+      // Show success message
+      alert('Member updated successfully!');
     } catch (error) {
       console.error('Failed to update member:', error);
+      alert('Failed to update member: ' + error.message);
     }
   };
 
