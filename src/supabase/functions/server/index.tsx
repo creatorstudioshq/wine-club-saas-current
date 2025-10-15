@@ -525,6 +525,92 @@ app.get("/make-server-9d538b9c/square/segments", async (c) => {
   }
 });
 
+// Create customer segment (group) for a plan
+app.post("/make-server-9d538b9c/square/segments", async (c) => {
+  try {
+    const { segmentName, description } = await c.req.json();
+    
+    const result = await squareHelpers.createCustomerSegment(segmentName, description);
+    if (!result.success) {
+      return c.json({ error: result.error }, 500);
+    }
+    
+    return c.json({ 
+      success: true, 
+      segment: result.segment,
+      message: `Customer group "${segmentName}" created successfully`
+    });
+  } catch (error) {
+    console.error('Error creating segment:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Add customer to segment
+app.post("/make-server-9d538b9c/square/segments/:segmentId/customers", async (c) => {
+  try {
+    const segmentId = c.req.param('segmentId');
+    const { customerId } = await c.req.json();
+    
+    const result = await squareHelpers.addCustomerToSegment(customerId, segmentId);
+    if (!result.success) {
+      return c.json({ error: result.error }, 500);
+    }
+    
+    return c.json({ 
+      success: true, 
+      customer: result.customer,
+      message: "Customer added to group successfully"
+    });
+  } catch (error) {
+    console.error('Error adding customer to segment:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Remove customer from segment
+app.delete("/make-server-9d538b9c/square/segments/:segmentId/customers/:customerId", async (c) => {
+  try {
+    const segmentId = c.req.param('segmentId');
+    const customerId = c.req.param('customerId');
+    
+    const result = await squareHelpers.removeCustomerFromSegment(customerId, segmentId);
+    if (!result.success) {
+      return c.json({ error: result.error }, 500);
+    }
+    
+    return c.json({ 
+      success: true, 
+      customer: result.customer,
+      message: "Customer removed from group successfully"
+    });
+  } catch (error) {
+    console.error('Error removing customer from segment:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
+// Get customers in a specific segment
+app.get("/make-server-9d538b9c/square/segments/:segmentId/customers", async (c) => {
+  try {
+    const segmentId = c.req.param('segmentId');
+    
+    const result = await squareHelpers.getCustomersInSegment(segmentId);
+    if (!result.success) {
+      return c.json({ error: result.error }, 500);
+    }
+    
+    return c.json({ 
+      success: true, 
+      customers: result.customers,
+      count: result.customers.length
+    });
+  } catch (error) {
+    console.error('Error getting customers in segment:', error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
 // Get specific segment
 app.get("/make-server-9d538b9c/square/segments/:segmentId", async (c) => {
   try {

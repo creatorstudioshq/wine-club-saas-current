@@ -24,6 +24,7 @@ interface Plan {
   fixed_price?: number;
   description?: string;
   is_active: boolean;
+  square_segment_id?: string; // Square customer group ID
 }
 
 interface ShippingZone {
@@ -112,6 +113,7 @@ export function PlansPage() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [squareGroupCounts, setSquareGroupCounts] = useState<{[key: string]: number}>({});
   
   // Plan creation/edit modal state
   const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
@@ -140,13 +142,28 @@ export function PlansPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // For now, use default data since backend isn't set up for this
-      // const [plansRes, membersRes] = await Promise.all([
-      //   api.getPlans(KING_FROSCH_ID),
-      //   api.getMembers(KING_FROSCH_ID)
-      // ]);
-      // setPlans(plansRes.plans || defaultPlans);
-      // setMembers(membersRes.members || []);
+      // Fetch members
+      const membersRes = await api.getMembers(KING_FROSCH_ID).catch(() => ({ members: [] }));
+      setMembers(membersRes.members || []);
+      
+      // Fetch Square group member counts for each plan
+      const groupCounts: {[key: string]: number} = {};
+      for (const plan of plans) {
+        if (plan.square_segment_id) {
+          try {
+            const segmentRes = await api.getCustomersInSquareSegment(plan.square_segment_id);
+            if (segmentRes.success) {
+              groupCounts[plan.id] = segmentRes.count || 0;
+            }
+          } catch (error) {
+            console.error(`Failed to fetch members for ${plan.name} group:`, error);
+            groupCounts[plan.id] = 0;
+          }
+        } else {
+          groupCounts[plan.id] = 0;
+        }
+      }
+      setSquareGroupCounts(groupCounts);
     } catch (error) {
       console.error('Failed to fetch plans data:', error);
     } finally {
@@ -160,7 +177,7 @@ export function PlansPage() {
     setRefreshing(false);
   };
 
-  const handleCreatePlan = () => {
+  const handleCreatePlan = async () => {
     const plan: Plan = {
       id: Date.now().toString(),
       name: newPlan.name!,
@@ -172,6 +189,23 @@ export function PlansPage() {
       description: newPlan.description,
       is_active: true
     };
+
+    // Create Square customer group for this plan
+    try {
+      const segmentResult = await api.createSquareSegment(
+        `${newPlan.name} Plan Members`,
+        `Customer group for ${newPlan.name} subscription plan members`
+      );
+      
+      if (segmentResult.success) {
+        // Add Square segment ID to plan
+        plan.square_segment_id = segmentResult.segment.id;
+        console.log(`Created Square group for ${newPlan.name} plan:`, segmentResult.segment.id);
+      }
+    } catch (error) {
+      console.error('Failed to create Square group for plan:', error);
+      // Continue with plan creation even if Square group creation fails
+    }
 
     setPlans([...plans, plan]);
     setIsCreatePlanOpen(false);
@@ -261,7 +295,7 @@ export function PlansPage() {
   // Calculate stats
   const planStats = plans.map(plan => ({
     ...plan,
-    memberCount: members.filter(member => member.subscription_plan_id === plan.id).length
+    memberCount: squareGroupCounts[plan.id] || 0 // Use Square group count instead of local members
   }));
 
   const totalMembers = members.length;

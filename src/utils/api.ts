@@ -313,4 +313,65 @@ export const api = {
     }
     return res.json();
   },
+
+  // Square Customer Groups (Segments) Functions
+  async getSquareSegments() {
+    const res = await fetch(`${BASE_URL}/square/segments`, {
+      headers: { Authorization: `Bearer ${publicAnonKey}` },
+    });
+    if (!res.ok) throw new Error(`Square segments fetch failed: ${res.status}`);
+    return res.json();
+  },
+
+  async createSquareSegment(segmentName: string, description?: string) {
+    const res = await fetch(`${BASE_URL}/square/segments`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ segmentName, description }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Square segment creation failed: ${res.status} - ${errorText}`);
+    }
+    return res.json();
+  },
+
+  async addCustomerToSquareSegment(segmentId: string, customerId: string) {
+    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${publicAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ customerId }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Add customer to segment failed: ${res.status} - ${errorText}`);
+    }
+    return res.json();
+  },
+
+  async removeCustomerFromSquareSegment(segmentId: string, customerId: string) {
+    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers/${customerId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${publicAnonKey}` },
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Remove customer from segment failed: ${res.status} - ${errorText}`);
+    }
+    return res.json();
+  },
+
+  async getCustomersInSquareSegment(segmentId: string) {
+    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers`, {
+      headers: { Authorization: `Bearer ${publicAnonKey}` },
+    });
+    if (!res.ok) throw new Error(`Get customers in segment failed: ${res.status}`);
+    return res.json();
+  },
 };

@@ -104,6 +104,197 @@ export async function getCustomerSegment(segmentId: string) {
   }
 }
 
+// Create customer segment (group)
+export async function createCustomerSegment(segmentName: string, description?: string) {
+  const { token, baseUrl } = getSquareConfig();
+  
+  if (!token) {
+    return { success: false, error: 'Square API not configured' };
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/v2/customers/segments`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Square-Version': '2024-01-18',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        segment: {
+          name: segmentName,
+          description: description || `Customer group for ${segmentName} plan`
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return { success: false, error: errorText };
+    }
+
+    const data = await response.json();
+    return { success: true, segment: data.segment };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Add customer to segment
+export async function addCustomerToSegment(customerId: string, segmentId: string) {
+  const { token, baseUrl } = getSquareConfig();
+  
+  if (!token) {
+    return { success: false, error: 'Square API not configured' };
+  }
+
+  try {
+    // First, get the customer to update their segment_ids
+    const customerResponse = await fetch(`${baseUrl}/v2/customers/${customerId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Square-Version': '2024-01-18',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!customerResponse.ok) {
+      const errorText = await customerResponse.text();
+      return { success: false, error: errorText };
+    }
+
+    const customerData = await customerResponse.json();
+    const customer = customerData.customer;
+    
+    // Add segment to existing segments
+    const currentSegments = customer.segment_ids || [];
+    const updatedSegments = [...currentSegments, segmentId];
+
+    // Update customer with new segment
+    const updateResponse = await fetch(`${baseUrl}/v2/customers/${customerId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Square-Version': '2024-01-18',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        customer: {
+          ...customer,
+          segment_ids: updatedSegments
+        }
+      })
+    });
+
+    if (!updateResponse.ok) {
+      const errorText = await updateResponse.text();
+      return { success: false, error: errorText };
+    }
+
+    const updateData = await updateResponse.json();
+    return { success: true, customer: updateData.customer };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Remove customer from segment
+export async function removeCustomerFromSegment(customerId: string, segmentId: string) {
+  const { token, baseUrl } = getSquareConfig();
+  
+  if (!token) {
+    return { success: false, error: 'Square API not configured' };
+  }
+
+  try {
+    // First, get the customer to update their segment_ids
+    const customerResponse = await fetch(`${baseUrl}/v2/customers/${customerId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Square-Version': '2024-01-18',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!customerResponse.ok) {
+      const errorText = await customerResponse.text();
+      return { success: false, error: errorText };
+    }
+
+    const customerData = await customerResponse.json();
+    const customer = customerData.customer;
+    
+    // Remove segment from existing segments
+    const currentSegments = customer.segment_ids || [];
+    const updatedSegments = currentSegments.filter(id => id !== segmentId);
+
+    // Update customer with updated segments
+    const updateResponse = await fetch(`${baseUrl}/v2/customers/${customerId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Square-Version': '2024-01-18',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        customer: {
+          ...customer,
+          segment_ids: updatedSegments
+        }
+      })
+    });
+
+    if (!updateResponse.ok) {
+      const errorText = await updateResponse.text();
+      return { success: false, error: errorText };
+    }
+
+    const updateData = await updateResponse.json();
+    return { success: true, customer: updateData.customer };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Get customers in a specific segment
+export async function getCustomersInSegment(segmentId: string) {
+  const { token, baseUrl } = getSquareConfig();
+  
+  if (!token) {
+    return { success: false, error: 'Square API not configured' };
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/v2/customers/search`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Square-Version': '2024-01-18',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query: {
+          filter: {
+            segment_ids: {
+              all: [segmentId]
+            }
+          }
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return { success: false, error: errorText };
+    }
+
+    const data = await response.json();
+    return { success: true, customers: data.customers || [] };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 // Create order
 export async function createOrder(orderData: any) {
   const { token, locationId, baseUrl } = getSquareConfig();
