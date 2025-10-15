@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Checkbox } from "./ui/checkbox";
 import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { Wine, Star, Gift, Crown, RotateCcw } from "lucide-react";
+import { Wine, Star, Gift, Crown, RotateCcw, Eye } from "lucide-react";
+import { CustomerWineSelection } from "./CustomerWineSelection";
 
 interface Plan {
   id: string;
@@ -32,7 +33,7 @@ const PLANS: Plan[] = [
     name: "Gold Club",
     bottles: 3,
     discount: 10,
-    frequency: "Quarterly",
+    frequency: "Monthly",
     price: 89,
     icon: <Gift className="w-5 h-5" />,
   },
@@ -41,7 +42,7 @@ const PLANS: Plan[] = [
     name: "Silver Club", 
     bottles: 6,
     discount: 15,
-    frequency: "Bi-Annual",
+    frequency: "Monthly",
     price: 165,
     icon: <Star className="w-5 h-5" />,
     popular: true,
@@ -51,7 +52,7 @@ const PLANS: Plan[] = [
     name: "Platinum Club",
     bottles: 12,
     discount: 20,
-    frequency: "Annual",
+    frequency: "Monthly",
     price: 300,
     icon: <Crown className="w-5 h-5" />,
   },
@@ -204,31 +205,33 @@ export function EmbeddedSignup({
                         </div>
                       </div>
 
-                      {/* Back of card - Details */}
+                      {/* Back of card - Wine Club Description */}
                       <div className={`absolute inset-0 transition-transform duration-700 ${
                         flippedCards[plan.id] ? 'rotate-y-0' : ''
                       }`} style={{backfaceVisibility: 'hidden', transform: 'rotateY(180deg)'}}>
                         <div className="h-full bg-gradient-to-br from-primary to-primary/80 p-6 text-white flex flex-col justify-center">
-                          <h3 className="text-xl font-serif mb-4 text-center">{plan.name}</h3>
+                          <h3 className="text-xl font-serif mb-4 text-center">{clubName}</h3>
                           
                           <div className="space-y-3 text-sm">
                             <div>
-                              <h4 className="font-medium mb-2 text-primary-foreground/80">What's Included</h4>
+                              <h4 className="font-medium mb-2 text-primary-foreground/80">About Our Wine Club</h4>
                               <p className="text-primary-foreground/90 leading-relaxed">
-                                {plan.bottles} carefully curated bottles delivered {plan.frequency.toLowerCase()}
+                                We curate exceptional wines from renowned vineyards worldwide, 
+                                delivering premium selections directly to your door.
                               </p>
                             </div>
                             
                             <div>
-                              <h4 className="font-medium mb-2 text-primary-foreground/80">Member Benefits</h4>
+                              <h4 className="font-medium mb-2 text-primary-foreground/80">What Makes Us Special</h4>
                               <p className="text-primary-foreground/90 leading-relaxed">
-                                {plan.discount}% discount on all wines, exclusive tastings, and priority access to limited releases.
+                                Expert sommelier selections, exclusive access to limited releases, 
+                                and detailed tasting notes with every bottle.
                               </p>
                             </div>
 
                             <div className="text-center mt-4">
                               <p className="text-lg font-bold">
-                                ${plan.price} per shipment
+                                Join {plan.name} - ${plan.price}/month
                               </p>
                             </div>
                           </div>
@@ -427,6 +430,39 @@ export function EmbeddedSignup({
                 You'll add your payment method securely with Square on the next step.
                 No charges until your first shipment ships.
               </p>
+
+              {/* Preview Customer Selection Process */}
+              <div className="mt-6 pt-6 border-t">
+                <div className="text-center space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Want to see how the wine selection process works?
+                  </p>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        <Eye className="w-4 h-4 mr-2" />
+                        Preview Customer Selection Process
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[90vw] max-w-4xl h-[80vh] max-h-[800px] overflow-y-auto mx-auto my-auto">
+                      <DialogHeader>
+                        <DialogTitle>Customer Wine Selection Process</DialogTitle>
+                        <DialogDescription>
+                          This is how members will select their wines each month
+                        </DialogDescription>
+                      </DialogHeader>
+                      <CustomerWineSelection 
+                        memberId="demo-member-id" 
+                        onComplete={() => {
+                          // Close dialog
+                          const closeButton = document.querySelector('[data-state="open"] button[aria-label="Close"]') as HTMLButtonElement;
+                          if (closeButton) closeButton.click();
+                        }}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
             </form>
           </div>
         );
