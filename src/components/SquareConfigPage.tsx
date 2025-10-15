@@ -16,8 +16,8 @@ export function SquareConfigPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isWizardComplete, setIsWizardComplete] = useState(false);
   const [activeTab, setActiveTab] = useState("credentials");
-  const [locationId, setLocationId] = useState("");
-  const [productionKey, setProductionKey] = useState("");
+  const [locationId, setLocationId] = useState("L8JQY7QJQJQJQ"); // Hardcoded King Frosch location ID
+  const [productionKey, setProductionKey] = useState("EAAAEOxxxxxxxx"); // Hardcoded King Frosch access token
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [globalPreferences, setGlobalPreferences] = useState<Array<{id: string, name: string, categories: string[]}>>([]);

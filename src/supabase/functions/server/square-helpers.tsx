@@ -2,12 +2,11 @@ import { serverEnv } from "./env.tsx";
 
 // Helper to get Square config
 function getSquareConfig() {
-  const token = serverEnv.SQUARE_ACCESS_TOKEN;
-  const locationId = serverEnv.SQUARE_LOCATION_ID;
-  const environment = Deno.env.get("SQUARE_SANDBOX_ACCESS_TOKEN") ? 'sandbox' : 'production';
-  const baseUrl = environment === 'sandbox' 
-    ? 'https://connect.squareupsandbox.com' 
-    : 'https://connect.squareup.com';
+  // Use hardcoded King Frosch production credentials
+  const token = serverEnv.KING_FROSCH_SQUARE_ACCESS_TOKEN;
+  const locationId = serverEnv.KING_FROSCH_SQUARE_LOCATION_ID;
+  const environment = 'production'; // Always production for King Frosch
+  const baseUrl = 'https://connect.squareup.com'; // Production URL
 
   return { token, locationId, environment, baseUrl };
 }

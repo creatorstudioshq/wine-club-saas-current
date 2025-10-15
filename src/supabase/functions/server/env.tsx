@@ -14,6 +14,10 @@ export const serverEnv = {
   SQUARE_LOCATION_ID: Deno.env.get("SQUARE_LOCATION_ID") || Deno.env.get("SQUARE_SANDBOX_LOCATION_ID") || '',
   SQUARE_WEBHOOK_SIGNATURE_KEY: Deno.env.get("SQUARE_WEBHOOK_SIGNATURE_KEY") || '',
 
+  // King Frosch Wine Club - Hardcoded Production Credentials
+  KING_FROSCH_SQUARE_LOCATION_ID: Deno.env.get("KING_FROSCH_SQUARE_LOCATION_ID") || "L8JQY7QJQJQJQ",
+  KING_FROSCH_SQUARE_ACCESS_TOKEN: Deno.env.get("KING_FROSCH_SQUARE_ACCESS_TOKEN") || "EAAAEOxxxxxxxx",
+
   // Wine Club
   KING_FROSCH_WINE_CLUB_ID: Deno.env.get("KING_FROSCH_WINE_CLUB_ID") || '550e8400-e29b-41d4-a716-446655440000',
 
