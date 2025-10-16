@@ -6,7 +6,7 @@ import { Label } from "./ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Alert, AlertDescription } from "./ui/alert";
-import { Wine, Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
+import { Wine, Mail, Lock, Sparkles } from "lucide-react";
 import { api } from "../utils/api";
 
 interface AuthPageProps {

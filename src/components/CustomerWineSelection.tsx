@@ -3,15 +3,8 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Checkbox } from "./ui/checkbox";
-import { Badge } from "./ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Calendar } from "./ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { 
   Wine, 
-  Star, 
   Gift, 
   Crown, 
   RotateCcw, 
@@ -23,7 +16,7 @@ import {
   Clock,
   DollarSign
 } from "lucide-react";
-import { format, addDays, addWeeks, isAfter, isBefore, startOfWeek, addDays as addDaysToDate } from "date-fns";
+import { format, addDays, addWeeks, isAfter, startOfWeek, addDays as addDaysToDate } from "date-fns";
 import { api } from "../utils/api";
 import { useClient } from "../contexts/ClientContext";
 
