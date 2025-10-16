@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { 
-  Wine, 
+  Wine as WineIcon, 
   Gift, 
   Crown, 
   RotateCcw, 
@@ -156,7 +156,7 @@ export function CustomerWineSelection({ memberId, onComplete }: CustomerWineSele
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <Wine className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <WineIcon className="w-8 h-8 animate-spin mx-auto mb-4" />
           <p>Loading your wine selection...</p>
         </div>
       </div>
@@ -206,7 +206,7 @@ export function CustomerWineSelection({ memberId, onComplete }: CustomerWineSele
                 <div key={wine.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <Wine className="w-6 h-6 text-gray-400" />
+                      <WineIcon className="w-6 h-6 text-gray-400" />
                     </div>
                     <div>
                       <p className="font-medium">{wine.name}</p>
@@ -258,7 +258,7 @@ export function CustomerWineSelection({ memberId, onComplete }: CustomerWineSele
                 onClick={() => setSwapMode('new')}
                 className="h-20 flex flex-col gap-2"
               >
-                <Wine className="w-6 h-6" />
+                <WineIcon className="w-6 h-6" />
                 Find a new one
               </Button>
             </div>
@@ -473,7 +473,7 @@ export function CustomerWineSelection({ memberId, onComplete }: CustomerWineSele
                 <div key={wine.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <Wine className="w-6 h-6 text-gray-400" />
+                      <WineIcon className="w-6 h-6 text-gray-400" />
                     </div>
                     <div>
                       <p className="font-medium">{wine.name}</p>

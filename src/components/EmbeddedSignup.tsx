@@ -82,6 +82,7 @@ interface EmbeddedSignupProps {
   className?: string;
   clubLogo?: string; // Optional club logo URL
   clubName?: string; // Optional club name
+  wineClubId: string;
 }
 
 export function EmbeddedSignup({ 
@@ -89,7 +90,8 @@ export function EmbeddedSignup({
   isLoading, 
   className = "", 
   clubLogo, 
-  clubName = "Our Wine Club" 
+  clubName = "Our Wine Club",
+  wineClubId
 }: EmbeddedSignupProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
