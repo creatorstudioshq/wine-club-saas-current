@@ -25,8 +25,7 @@ import {
 } from "lucide-react";
 import { format, addDays, addWeeks, isAfter, isBefore, startOfWeek, addDays as addDaysToDate } from "date-fns";
 import { api } from "../utils/api";
-
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
+import { useClient } from "../contexts/ClientContext";
 
 interface Wine {
   id: string;
@@ -58,6 +57,7 @@ interface CustomerWineSelectionProps {
 }
 
 export function CustomerWineSelection({ memberId, onComplete }: CustomerWineSelectionProps) {
+  const { currentWineClub } = useClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [member, setMember] = useState<Member | null>(null);
   const [wines, setWines] = useState<Wine[]>([]);
@@ -78,18 +78,20 @@ export function CustomerWineSelection({ memberId, onComplete }: CustomerWineSele
   // Step 1: Load member and initial wines
   useEffect(() => {
     const loadData = async () => {
+      if (!currentWineClub) return;
+      
       try {
         setLoading(true);
         
         // Load member data
-        const memberRes = await api.getMembers(KING_FROSCH_ID);
+        const memberRes = await api.getMembers(currentWineClub.id);
         const memberData = memberRes.members.find((m: any) => m.id === memberId);
         if (!memberData) throw new Error('Member not found');
         
         setMember(memberData);
         
         // Load wines based on member preferences
-        const inventoryRes = await api.getLiveInventory(KING_FROSCH_ID, 'all', 0);
+        const inventoryRes = await api.getLiveInventory(currentWineClub.id, 'all', 0);
         const availableWines = inventoryRes.wines || [];
         
         // Filter wines based on member's subscription plan bottle count
@@ -107,7 +109,7 @@ export function CustomerWineSelection({ memberId, onComplete }: CustomerWineSele
     };
 
     loadData();
-  }, [memberId]);
+  }, [memberId, currentWineClub]);
 
   // Get available delivery dates (next Wednesday + 7 days, then 1-2 Wednesdays after)
   const getAvailableDeliveryDates = () => {

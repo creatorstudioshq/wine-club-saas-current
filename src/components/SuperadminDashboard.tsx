@@ -12,7 +12,6 @@ import {
   Users, 
   Package, 
   DollarSign, 
-  Settings, 
   Eye, 
   EyeOff,
   CheckCircle,
