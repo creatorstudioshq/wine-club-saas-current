@@ -1,73 +1,158 @@
-# Wine Club SaaS
+# Wine Club SaaS Platform
 
 ## Overview
 
-This is a wine club saas for Square wine clubs. King Frosch is client #1 and will not have a client billing plan. Future clients will pay a monthly fee not determined. 
+A comprehensive SaaS platform for wine clubs integrated with Square API. This platform enables wine club owners to manage memberships, shipments, payments, and customer preferences through a modern web interface.
 
-#Square Key Points
-1) We GET but don't need to store item data and their related object image 
-2) We Get customers that are have joined a Wine Club Group
-3) We Create customer records and attach to the Wine Club group with Plan attribute or we can Create Wine Club Groups for each Plan and Update Customer group membership. WE Create a Member record in our database to store their Square Customer ID to associate Plans, Payments, and Wine Preferences and Status ; active, cancelled 
-3) We Create shipments in our Database with Square Item Ids when a shipment is created or saved as a draft
-4) We Create or Update payment information on a customers Square profile when they join or confirm a wine club shipment.
-5) We Create a Payment in Square when a Customer confirms a shipment or joins the Wine club and Confirms the initial shipment. We create a record of the Payment ID if successful in our database. 
-6) We GET custom payments that match Payment IDS in our database to display a customers Wine Club payment history.
-7) We Create "Wine Club" portal users as the Wine Club management portal is what we sell. 
-8) Wine Club portal members should have a self-service experienc just like othr SaAS :login, reset password, club management functions.
-9) We embed the wine club in the Club owners square accoun for users to eaasily sign up and manage their preferences. 
-10) Success for a member is signing up, paying for and initial shipmen, and being able to change their club memberhship and preferences 
-11) Succees for a club is being able ot setup an account, square integrations, customer preferences, wine club clubs, create a custom set of wines as  shipment specfic customers want each time, pick a date, set wine club frequency, send out an email for users to confirm their wine club shipment items, and be able to pay through the wine club website. 
+## Architecture
 
-Square example code is here 
-https://developer.squareup.com/docs/sample-apps
+**Technology Stack:**
+- **Frontend**: Vite + React + TypeScript
+- **UI Components**: Shadcn/ui + Tailwind CSS
+- **Backend**: Supabase (PostgreSQL + Edge Functions)
+- **API Integration**: Square API (Payments, Customers, Inventory)
+- **Email Service**: Resend
+- **Deployment**: Vercel
+
+## Project Structure
+
+```
+wine-club-saas-current/
+├── src/
+│   ├── components/           # React components
+│   │   ├── ui/              # Shadcn/ui components
+│   │   ├── customer/        # Customer-facing components
+│   │   └── *.tsx           # Admin components
+│   ├── supabase/
+│   │   └── functions/server/ # Edge Functions
+│   ├── utils/               # API utilities
+│   ├── App.tsx             # Main app component
+│   ├── main.tsx            # Vite entry point
+│   └── index.html          # HTML template
+├── package.json            # Dependencies
+├── vite.config.ts          # Vite configuration
+├── tailwind.config.js      # Tailwind configuration
+├── README.md               # This file
+├── ROADMAP.md              # Development roadmap
+└── CHANGELOG.md            # Change log
+```
+
+## Key Features
+
+### Wine Club Management
+- **Multi-tenant SaaS architecture** - Each wine club has isolated data
+- **Square API integration** - Real-time inventory, customers, payments
+- **Member management** - Signup, preferences, payment methods
+- **Plan management** - Flexible subscription plans with Square groups
+- **Shipment builder** - Create custom wine selections
+- **Customer portal** - Self-service wine selection and preferences
+
+### Admin Dashboard
+- **Real-time metrics** - Member counts, plan distribution, inventory
+- **Club setup wizard** - Multi-step configuration process
+- **Square configuration** - API credentials and category selection
+- **Global preferences** - Wine category groupings
+- **Inventory management** - Opt-out wines from shipments
+
+### Customer Experience
+- **Embedded signup** - Seamless integration with Square sites
+- **Wine selection process** - Interactive wine swapping and filtering
+- **Delivery scheduling** - Flexible delivery date selection
+- **Payment processing** - Square Web Payments integration
+- **Email notifications** - Resend-powered transactional emails
+
 ## Getting Started
 
+### Prerequisites
+- Node.js 18+
+- Supabase account
+- Square Developer account
+- Resend account (for emails)
 
-This project was started in Figma. It needs to have dependecies installed, to be converted to Next.JS application. The code needs a complete audit for functionality. The primary concern is the square inventory API is not pulling in the entire collection from the Square account API which maybe hard coded into the inventory page. There is no need for inventory to be on the sandbox url becasue we aren't editing the inventory or saving it. The inventory are called items by Square and the item as a whole the collection. Items have meta data common in e-commerce, but pictures are considered related objects. The get call to the collection seems to be working, but there are over a 100 items and only 8 displayed. Square does recommend pagination over 50, but we should paginate in quantities of 24 or less as long as a multiple of 3. Categories can be assigned to customer preference grouping as a filter at the users discretion. i.e. Red and White Dry Wine. The wine club is free for this club. Customers sign up on a page where plans are embedded, they choose a plan level, and then should be allowed to enter a payment method that is saved in Square in the customer profile or record. All customers need to select a preference which determines the wines in their club shipment, but some choose a Fixed Custom preference allowing the same wines to be shipped each time. The owner creates shipments which are a matrix of wines that match the preference group and plan quantity. In the King Frosch Wine Club that is 3, 6, or 12 wines per shipment on a 2, 3, 4, or 6 month frequency chosen by the customer. Customers get an email 7 days before a shipment to swap wines and confirm their shipment date or delay shipment by up to two weeks. All club options should be variables that other club owners can modify. Customers can sign up anytime, should be able to select their initial suggested wines. Then customers are in the cycle of shipments with their iniital shipment being the monthly anniversary date to determine bow often from that date shipments occure indefinetly until cancelled. King Frosch ships club wines the third Wednesday of the month to all members expecting a shipment. This is the first instance so members will need to be imported and their plans assigned. After that members sign up from the Square club site. Users receive their wine selection 7 days in advance via email and or SMS via strip with a unique link they can open without login, approve or swap the wines they want, then confirm the shipment date or delay 1-2 weeks to allow for vacations. Then when they confirm a date tehy are asked to put payment information in or in the future update if expired. Once paymnent and a shipment date is confirmed, the member card is charged via the Square payment api, payment record stored in Square, and an email receipt sent out. 
+### Installation
 
-The SaaS admin is started but not completed. For now it needs to be able to show the wine club and their shipment information for support and that is about all for now. 
-Read the readme.md and review the code and modify any code needed to fulfill. 
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/creatorstudioshq/wine-club-saas-current.git
+   cd wine-club-saas-current
+   ```
 
-ROADMAP.MD has instructions on what to work on.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-## Cursor AI = Agent
+3. **Environment setup**
+   - Copy `.env.example` to `.env.local`
+   - Configure Supabase, Square, and Resend credentials
 
+4. **Start development server**
+   ```bash
+   npm run dev
+   ```
 
-## Important: Agent Memory Refresh Protocol
+5. **Access the application**
+   - Open `http://localhost:3000`
+   - Use admin credentials or sign up as a new wine club
 
-1. **Read this README.md in the root not /src completely** every 15 minutes.
-2. **When finished, then Read ROADMAP.md in root, not src** to understand the project and get approval from user with next steps. All new features or changes recommended should be in this file which is similar to a PRD, except this app is almost complete. 
-3. **After reading README + ROADMAP:**
-   - Give me a status update. 
-   - **Call me "Big Poppa J"** all the time. 
-   - Tell me what is finished, if anything needs my approval, any issues or what's next.
-   - Proceed with your normal protocol . 
+## Square API Integration
 
-**Agent Change Log Protocol**
+### Key Integration Points
+1. **Inventory Management** - Real-time wine catalog from Square
+2. **Customer Management** - Square customer groups for plan management
+3. **Payment Processing** - Square Web Payments for subscriptions
+4. **Order Management** - Shipment creation and tracking
 
-1. **Make changelog entries in Changelog.md when:**
-   - On github commits. 
-   - No more than 15 minutes apart 
+### Configuration
+- Square Location ID and Access Token stored per wine club
+- Customer segments created for each subscription plan
+- Payment methods stored in Square customer profiles
 
-2. **Changelog format:**
-   \`\`\`
-   ## [Date/Time CST] - [Stage Name]
-   - Change 1
-   - Change 2
-   - Change 3
-   Memory: XX% of max
-   \`\`\`
+## SaaS Architecture
 
-3. After change logs follow the Agent Memory Refresh Protocol 
+### Multi-Tenancy
+- Each wine club has isolated data in Supabase
+- Square credentials stored per wine club
+- Global preferences and plans scoped to wine club
+- Member data associated with specific wine club
 
-## Features
+### Data Flow
+1. **Wine Club Setup** → Square credentials → Category selection
+2. **Member Signup** → Square customer creation → Plan assignment
+3. **Shipment Creation** → Wine selection → Square order creation
+4. **Payment Processing** → Square payment → Database record
 
-[Add feature list here]
+## Development
+
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Code Structure
+- **Components**: Reusable UI components in `/src/components`
+- **Pages**: Main application pages (Dashboard, Members, etc.)
+- **Utils**: API calls and utility functions
+- **Supabase**: Edge Functions for backend logic
+
+## Deployment
+
+The application is deployed on Vercel with automatic deployments from the main branch.
+
+**Live Site**: `square-wine-club.vercel.app`
 
 ## Contributing
 
-[Add contribution guidelines here]
+1. Read the ROADMAP.md for current development priorities
+2. Follow the existing code structure and patterns
+3. Test all Square API integrations thoroughly
+4. Update CHANGELOG.md for significant changes
 
 ## License
 
-[Add license information here]# Force deployment Tue Oct 14 15:40:26 CDT 2025
+[Add license information here]
+
+---
+
+**Note**: This is a SaaS platform designed for multiple wine clubs. King Frosch Wine Club is the initial client for testing and validation.
