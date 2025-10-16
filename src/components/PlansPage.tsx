@@ -8,11 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Skeleton } from "./ui/skeleton";
 import { Plus, Edit, Trash2, Package, Percent, RefreshCw, MapPin, DollarSign } from "lucide-react";
 import { api } from "../utils/api";
-
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
+import { useClient } from "../contexts/ClientContext";
 
 interface Plan {
   id: string;
@@ -107,6 +105,7 @@ const defaultShippingZones: ShippingZone[] = [
 ];
 
 export function PlansPage() {
+  const { currentWineClub } = useClient();
   const [activeTab, setActiveTab] = useState("plans");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [shippingZones, setShippingZones] = useState<ShippingZone[]>(defaultShippingZones);
@@ -140,15 +139,17 @@ export function PlansPage() {
   });
 
   const fetchData = async () => {
+    if (!currentWineClub) return;
+    
     try {
       setLoading(true);
       
       // Fetch plans from database
-      const plansRes = await api.getPlans(KING_FROSCH_ID).catch(() => ({ plans: [] }));
+      const plansRes = await api.getPlans(currentWineClub.id).catch(() => ({ plans: [] }));
       setPlans(plansRes.plans || []);
       
       // Fetch members
-      const membersRes = await api.getMembers(KING_FROSCH_ID).catch(() => ({ members: [] }));
+      const membersRes = await api.getMembers(currentWineClub.id).catch(() => ({ members: [] }));
       setMembers(membersRes.members || []);
       
       // Fetch Square group member counts for each plan
@@ -156,7 +157,7 @@ export function PlansPage() {
       for (const plan of plansRes.plans || []) {
         if (plan.square_segment_id) {
           try {
-                 const segmentRes = await api.getCustomersInSquareSegment(plan.square_segment_id, KING_FROSCH_ID);
+                 const segmentRes = await api.getCustomersInSquareSegment(plan.square_segment_id, currentWineClub.id);
             if (segmentRes.success) {
               groupCounts[plan.id] = segmentRes.count || 0;
             }
@@ -197,11 +198,13 @@ export function PlansPage() {
 
     // Create Square customer group for this plan
     try {
-           const segmentResult = await api.createSquareSegment(
-             `${newPlan.name} Plan Members`,
-             `Customer group for ${newPlan.name} subscription plan members`,
-             KING_FROSCH_ID
-           );
+      if (!currentWineClub) throw new Error('No wine club selected');
+      
+      const segmentResult = await api.createSquareSegment(
+        `${newPlan.name} Plan Members`,
+        `Customer group for ${newPlan.name} subscription plan members`,
+        currentWineClub.id
+      );
       
       if (segmentResult.success) {
         // Add Square segment ID to plan
@@ -216,7 +219,7 @@ export function PlansPage() {
     // Save plan to database
     try {
       const planData = {
-        wine_club_id: KING_FROSCH_ID,
+        wine_club_id: currentWineClub.id,
         name: plan.name,
         bottle_count: plan.bottle_count,
         discount_percentage: plan.discount_percentage,
@@ -228,7 +231,7 @@ export function PlansPage() {
         square_segment_id: plan.square_segment_id
       };
       
-      const response = await api.createPlan(planData);
+      const response = await api.createPlan(planData, currentWineClub.id);
       if (response.plan) {
         plan.id = response.plan.id; // Use database ID
         setPlans([...plans, plan]);
@@ -324,7 +327,7 @@ export function PlansPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentWineClub]);
 
   // Calculate stats
   const planStats = plans.map(plan => ({

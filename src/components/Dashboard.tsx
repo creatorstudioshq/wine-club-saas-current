@@ -3,12 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
 import { Skeleton } from "./ui/skeleton";
-import { Users, Package, TrendingUp, DollarSign, Wine, Truck } from "lucide-react";
+import { Users, Package, TrendingUp, Wine, Truck } from "lucide-react";
 import { api } from "../utils/api";
-
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
+import { useClient } from "../contexts/ClientContext";
 
 export function Dashboard() {
+  const { currentWineClub, isLoading: clientLoading } = useClient();
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState([]);
   const [shipments, setShipments] = useState([]);
@@ -17,15 +17,17 @@ export function Dashboard() {
   const [globalPreferences, setGlobalPreferences] = useState([]);
 
   useEffect(() => {
+    if (!currentWineClub) return;
+    
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
         const [membersRes, shipmentsRes, plansRes, inventoryRes, preferencesRes] = await Promise.all([
-          api.getMembers(KING_FROSCH_ID).catch(() => ({ members: [] })),
-          api.getShipments(KING_FROSCH_ID).catch(() => ({ shipments: [] })),
-          api.getPlans(KING_FROSCH_ID).catch(() => ({ plans: [] })),
-          api.getLiveInventory(KING_FROSCH_ID, 'all', 0).catch(() => ({ wines: [] })),
-          api.getGlobalPreferences(KING_FROSCH_ID).catch(() => ({ preferences: [] }))
+          api.getMembers(currentWineClub.id).catch(() => ({ members: [] })),
+          api.getShipments(currentWineClub.id).catch(() => ({ shipments: [] })),
+          api.getPlans(currentWineClub.id).catch(() => ({ plans: [] })),
+          api.getLiveInventory(currentWineClub.id, 'all', 0).catch(() => ({ wines: [] })),
+          api.getGlobalPreferences(currentWineClub.id).catch(() => ({ preferences: [] }))
         ]);
 
         setMembers(membersRes.members || []);
@@ -47,7 +49,7 @@ export function Dashboard() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [currentWineClub]);
 
   // Calculate plan distribution (deduplicate by plan ID)
   const planDistribution = plans.reduce((acc, plan) => {
@@ -133,6 +135,35 @@ export function Dashboard() {
     date: new Date(shipment.ship_date).toLocaleDateString(),
     itemCount: shipment.shipment_items?.length || 0
   }));
+
+  if (clientLoading || loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-3 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentWineClub) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">No wine club selected</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

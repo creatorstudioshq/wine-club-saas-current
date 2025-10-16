@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ClientProvider } from "./contexts/ClientContext";
 import { AdminLayout } from "./components/AdminLayout";
 import { Dashboard } from "./components/Dashboard";
 import { MembersPage } from "./components/MembersPage";
@@ -26,6 +27,14 @@ type CustomerStep = "wine-selection" | "upsell" | "delivery" | "payment" | "pref
 type AppMode = "admin" | "customer" | "auth" | "signup";
 
 export default function App() {
+  return (
+    <ClientProvider>
+      <AppContent />
+    </ClientProvider>
+  );
+}
+
+function AppContent() {
   const [appMode, setAppMode] = useState<AppMode>("auth");
   const [currentPage, setCurrentPage] = useState<AdminPage>("dashboard");
   const [customerStep, setCustomerStep] = useState<CustomerStep>("wine-selection");

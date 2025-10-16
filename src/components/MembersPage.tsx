@@ -11,10 +11,10 @@ import { Textarea } from "./ui/textarea";
 import { Skeleton } from "./ui/skeleton";
 import { Search, Upload, UserPlus, Filter, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { api } from "../utils/api";
-
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
+import { useClient } from "../contexts/ClientContext";
 
 export function MembersPage() {
+  const { currentWineClub } = useClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("all");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -26,11 +26,13 @@ export function MembersPage() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
+    if (!currentWineClub) return;
+    
     try {
       setLoading(true);
       const [membersRes, plansRes] = await Promise.all([
-        api.getMembers(KING_FROSCH_ID),
-        api.getPlans(KING_FROSCH_ID)
+        api.getMembers(currentWineClub.id),
+        api.getPlans(currentWineClub.id)
       ]);
       
       setMembers(membersRes.members || []);
@@ -94,7 +96,7 @@ export function MembersPage() {
   const handleSyncFromSquare = async () => {
     try {
       setRefreshing(true);
-      await api.syncSquareCustomers(KING_FROSCH_ID);
+      await api.syncSquareCustomers(currentWineClub.id);
       await fetchData(); // Refresh the members list
       alert('Successfully synced members from Square!');
     } catch (error) {
@@ -106,8 +108,10 @@ export function MembersPage() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (currentWineClub) {
+      fetchData();
+    }
+  }, [currentWineClub]);
 
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
