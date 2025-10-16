@@ -128,13 +128,7 @@ export function Dashboard() {
     },
   ];
 
-  const recentShipments = shipments.slice(0, 4).map(shipment => ({
-    id: shipment.id.slice(0, 8),
-    name: shipment.name,
-    status: shipment.status,
-    date: new Date(shipment.ship_date).toLocaleDateString(),
-    itemCount: shipment.shipment_items?.length || 0
-  }));
+  // Remove unused recentShipments variable
 
   if (clientLoading || loading) {
     return (

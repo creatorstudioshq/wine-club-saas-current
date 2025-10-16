@@ -81,8 +81,6 @@ export function MarketingIntegration() {
   const [smsEnabled, setSmsEnabled] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [testPhone, setTestPhone] = useState("");
-  const [selectedEmailTemplate, setSelectedEmailTemplate] = useState<string>("1");
-  const [selectedSMSTemplate, setSelectedSMSTemplate] = useState<string>("1");
 
   const handleSendTestEmail = async () => {
     // This would integrate with Square Marketing API

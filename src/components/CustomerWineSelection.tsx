@@ -133,18 +133,7 @@ export function CustomerWineSelection({ memberId, onComplete }: CustomerWineSele
     setSelectedWines(updatedWines);
   };
 
-  const handleQuantityChange = (wineIndex: number, quantity: number) => {
-    if (quantity === 0) {
-      // Remove wine
-      const updatedWines = selectedWines.filter((_, index) => index !== wineIndex);
-      setSelectedWines(updatedWines);
-    } else {
-      // Update quantity (simplified - in real app would handle multiple bottles)
-      const updatedWines = [...selectedWines];
-      updatedWines[wineIndex] = { ...updatedWines[wineIndex] };
-      setSelectedWines(updatedWines);
-    }
-  };
+  // Remove unused handleQuantityChange function
 
   const calculateTotal = () => {
     if (!member) return 0;

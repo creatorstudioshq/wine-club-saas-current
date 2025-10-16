@@ -47,7 +47,6 @@ export function CustomerPreferencesPage() {
   const [globalPreferences, setGlobalPreferences] = useState<GlobalPreference[]>([]);
   const [customerAssignments, setCustomerAssignments] = useState<CustomerPreferenceAssignment[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [squareCustomers, setSquareCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   

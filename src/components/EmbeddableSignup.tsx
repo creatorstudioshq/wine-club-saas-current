@@ -28,7 +28,6 @@ interface EmbeddableSignupProps {
   primaryColor?: string;
   backgroundColor?: string;
   textColor?: string;
-  apiBaseUrl?: string;
 }
 
 // Sample plans - in production these would come from the wine club's API
@@ -74,8 +73,7 @@ export function EmbeddableSignup({
   clubLogo,
   primaryColor = "#d97706",
   backgroundColor = "#fef3c7",
-  textColor = "#1f2937",
-  apiBaseUrl = "https://your-api-domain.com"
+  textColor = "#1f2937"
 }: EmbeddableSignupProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
