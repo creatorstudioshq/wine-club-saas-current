@@ -9,10 +9,10 @@ import { Progress } from "./ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ChevronLeft, ChevronRight, CheckCircle, Wine, Settings, Package, Heart, Truck } from "lucide-react";
 import { api } from "../utils/api";
-
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
+import { useClient } from "../contexts/ClientContext";
 
 export function SquareConfigPage() {
+  const { currentWineClub } = useClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [isWizardComplete, setIsWizardComplete] = useState(false);
   const [activeTab, setActiveTab] = useState("credentials");
@@ -33,8 +33,10 @@ export function SquareConfigPage() {
   // Fetch existing config on load
   useEffect(() => {
     const fetchConfig = async () => {
+      if (!currentWineClub) return;
+      
       try {
-        const response = await api.getSquareConfig(KING_FROSCH_ID);
+        const response = await api.getSquareConfig(currentWineClub.id);
         if (response.config) {
           setLocationId(response.config.square_location_id || "");
           setProductionKey(response.config.square_access_token || "");
@@ -68,11 +70,13 @@ export function SquareConfigPage() {
       }
     };
     fetchConfig();
-  }, []);
+  }, [currentWineClub]);
 
   const loadCategories = async () => {
+    if (!currentWineClub) return;
+    
     try {
-      const inventoryRes = await api.getLiveInventory(KING_FROSCH_ID, 'all', 0);
+      const inventoryRes = await api.getLiveInventory(currentWineClub.id, 'all', 0);
       const categories = new Set<string>();
       
       // Get all categories (including zero inventory for selection)
@@ -98,6 +102,12 @@ export function SquareConfigPage() {
   };
 
   const handleSaveCredentials = async () => {
+    if (!currentWineClub) {
+      setMessage("No wine club selected");
+      setMessageType("error");
+      return;
+    }
+    
     if (!locationId.trim() || !productionKey.trim()) {
       setMessage("Please enter both Location ID and Access Token");
       setMessageType("error");
@@ -109,7 +119,7 @@ export function SquareConfigPage() {
     
     try {
       const response = await api.saveSquareConfig({
-        wine_club_id: KING_FROSCH_ID,
+        wine_club_id: currentWineClub.id,
         square_location_id: locationId.trim(),
         square_access_token: productionKey.trim(),
       });
@@ -131,6 +141,12 @@ export function SquareConfigPage() {
   };
 
   const handleSaveCategories = async () => {
+    if (!currentWineClub) {
+      setMessage("No wine club selected");
+      setMessageType("error");
+      return;
+    }
+    
     if (selectedCategories.length === 0) {
       setMessage("Please select at least one category");
       setMessageType("error");
@@ -143,7 +159,7 @@ export function SquareConfigPage() {
     try {
       // Only save categories, don't touch credentials
       const response = await api.saveSquareConfig({
-        wine_club_id: KING_FROSCH_ID,
+        wine_club_id: currentWineClub.id,
         square_location_id: locationId.trim(), // Keep existing
         square_access_token: productionKey.trim(), // Keep existing
         selected_categories: selectedCategories,
