@@ -7,9 +7,11 @@ import { Checkbox } from "./ui/checkbox";
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { ChevronLeft, ChevronRight, CheckCircle, Wine, Settings, Package, Heart, Truck, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle, Wine, Settings, Package, Heart, Truck, RefreshCw, CreditCard } from "lucide-react";
 import { api } from "../utils/api";
 import { useClient } from "../contexts/ClientContext";
+import { PlansPage } from "./PlansPage";
+import { CustomerPreferencesPage } from "./CustomerPreferencesPage";
 
 export function SquareConfigPage() {
   const { currentWineClub } = useClient();
@@ -441,7 +443,7 @@ export function SquareConfigPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="credentials" className="flex items-center space-x-2">
                   <Settings className="w-4 h-4" />
                   <span>Credentials</span>
@@ -453,6 +455,10 @@ export function SquareConfigPage() {
                 <TabsTrigger value="preferences" className="flex items-center space-x-2">
                   <Heart className="w-4 h-4" />
                   <span>Preferences</span>
+                </TabsTrigger>
+                <TabsTrigger value="plans" className="flex items-center space-x-2">
+                  <CreditCard className="w-4 h-4" />
+                  <span>Plans</span>
                 </TabsTrigger>
                 <TabsTrigger value="inventory" className="flex items-center space-x-2">
                   <Wine className="w-4 h-4" />
@@ -661,15 +667,26 @@ export function SquareConfigPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {availableWines.length === 0 ? (
+                {(!locationId || !productionKey) ? (
                   <div className="text-center py-8">
                     <Wine className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No wines available. Please configure Square credentials first.</p>
+                    <p className="text-muted-foreground">Please configure Square credentials first to load inventory.</p>
                     <Button 
                       onClick={() => setActiveTab("credentials")}
                       className="mt-4"
                     >
                       Configure Square Credentials
+                    </Button>
+                  </div>
+                ) : availableWines.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Wine className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No wines found. Click refresh to load inventory from Square.</p>
+                    <Button 
+                      onClick={loadInventory}
+                      className="mt-4"
+                    >
+                      Load Inventory
                     </Button>
                   </div>
                 ) : (
@@ -754,16 +771,109 @@ export function SquareConfigPage() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="plans">
+            <PlansPage />
+          </TabsContent>
+
+          <TabsContent value="preferences">
+            <CustomerPreferencesPage />
+          </TabsContent>
+
           <TabsContent value="shipping">
             <Card>
               <CardHeader>
-                <CardTitle>Shipping Zones</CardTitle>
+                <CardTitle>Shipping Zones & Rates</CardTitle>
                 <CardDescription>
-                  Configure shipping zones and rates.
+                  Configure shipping zones and USPS rates from your location (92677).
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Shipping zones coming soon...</p>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* USPS Ground Advantage */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">USPS Ground Advantage</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Local (92677 area):</span>
+                        <span className="font-medium">$8.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>California:</span>
+                        <span className="font-medium">$12.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>West Coast:</span>
+                        <span className="font-medium">$15.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>East Coast:</span>
+                        <span className="font-medium">$18.95</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* USPS Priority Mail */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">USPS Priority Mail</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Local (92677 area):</span>
+                        <span className="font-medium">$12.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>California:</span>
+                        <span className="font-medium">$16.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>West Coast:</span>
+                        <span className="font-medium">$19.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>East Coast:</span>
+                        <span className="font-medium">$22.95</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* USPS Express */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">USPS Express</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Local (92677 area):</span>
+                        <span className="font-medium">$25.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>California:</span>
+                        <span className="font-medium">$29.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>West Coast:</span>
+                        <span className="font-medium">$32.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>East Coast:</span>
+                        <span className="font-medium">$35.95</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">Shipping Zone Configuration</h4>
+                  <p className="text-sm text-blue-800">
+                    These rates are based on USPS pricing from ZIP code 92677 (Orange County, CA). 
+                    Rates may vary based on package weight and dimensions. Contact your shipping provider 
+                    for exact pricing and to set up automated rate calculation.
+                  </p>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button variant="outline">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configure Shipping Integration
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

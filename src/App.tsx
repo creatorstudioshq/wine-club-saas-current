@@ -25,7 +25,7 @@ import { WelcomeToast } from "./components/WelcomeToast";
 import { Toaster } from "./components/ui/sonner";
 import { api } from "./utils/api";
 
-type AdminPage = "dashboard" | "members" | "plans" | "preferences" | "shipments" | "square-config" | "superadmin" | "marketing" | "shipping-schedule" | "embeddable-signup";
+type AdminPage = "dashboard" | "members" | "shipments" | "square-config" | "superadmin" | "marketing" | "shipping-schedule" | "embeddable-signup";
 type SuperadminPage = "saas-dashboard" | "organizations" | "users" | "billing" | "settings";
 type CustomerStep = "wine-selection" | "upsell" | "delivery" | "payment" | "preferences" | "payment-collection";
 type AppMode = "admin" | "superadmin" | "customer" | "auth" | "signup";
@@ -217,10 +217,6 @@ function AppContent() {
         return <Dashboard />;
       case "members":
         return <MembersPage />;
-      case "plans":
-        return <PlansPage />;
-      case "preferences":
-        return <CustomerPreferencesPage />;
       case "shipments":
         return <ShipmentBuilderPage />;
       case "square-config":
