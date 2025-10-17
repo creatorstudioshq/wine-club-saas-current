@@ -21,18 +21,15 @@ interface SuperadminLayoutProps {
 }
 
 const superadminNavigation = [
-  { name: "Dashboard", icon: Home, id: "superadmin-dashboard" },
+  { name: "Dashboard", icon: Home, id: "saas-dashboard" },
   { 
-    name: "Clubs", 
+    name: "Organizations", 
     icon: Building2, 
-    id: "clubs",
-    submenu: [
-      { name: "Organizations", id: "clubs-organizations" },
-      { name: "Users", id: "clubs-users" },
-      { name: "Shipment Profiles", id: "clubs-shipment-profiles" }
-    ]
+    id: "organizations"
   },
-  { name: "System Settings", icon: Settings, id: "system-settings" },
+  { name: "Users", icon: Users, id: "users" },
+  { name: "Billing", icon: CreditCard, id: "billing" },
+  { name: "Settings", icon: Settings, id: "settings" },
 ];
 
 export function SuperadminLayout({ children, currentPage, onPageChange, onLogout }: SuperadminLayoutProps) {
@@ -45,7 +42,7 @@ export function SuperadminLayout({ children, currentPage, onPageChange, onLogout
               <Shield className="h-8 w-8 text-primary" />
               <div>
                 <h2>Wine Club SaaS</h2>
-                <p className="text-sm text-muted-foreground">Platform Admin</p>
+                <p className="text-sm text-muted-foreground">SaaS Parent Admin</p>
               </div>
             </div>
           </SidebarHeader>
@@ -54,40 +51,13 @@ export function SuperadminLayout({ children, currentPage, onPageChange, onLogout
             <SidebarMenu>
               {superadminNavigation.map((item) => (
                 <SidebarMenuItem key={item.id}>
-                  {item.submenu ? (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <SidebarMenuButton
-                          isActive={item.submenu.some(sub => currentPage === sub.id)}
-                          className="w-full justify-between"
-                        >
-                          <div className="flex items-center gap-2">
-                            <item.icon className="h-4 w-4" />
-                            {item.name}
-                          </div>
-                          <ChevronDown className="h-4 w-4" />
-                        </SidebarMenuButton>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {item.submenu.map((subItem) => (
-                          <DropdownMenuItem 
-                            key={subItem.id}
-                            onClick={() => onPageChange(subItem.id)}
-                          >
-                            {subItem.name}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    <SidebarMenuButton
-                      onClick={() => onPageChange(item.id)}
-                      isActive={currentPage === item.id}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.name}
-                    </SidebarMenuButton>
-                  )}
+                  <SidebarMenuButton
+                    onClick={() => onPageChange(item.id)}
+                    isActive={currentPage === item.id}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.name}
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -100,8 +70,8 @@ export function SuperadminLayout({ children, currentPage, onPageChange, onLogout
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuButton className="w-full justify-between">
                       <div className="flex items-center gap-2">
-                        <Shield className="h-4 w-4" />
-                        SaaS Admin
+                      <Shield className="h-4 w-4" />
+                      SaaS Parent Admin
                       </div>
                       <ChevronDown className="h-4 w-4" />
                     </SidebarMenuButton>
@@ -109,7 +79,7 @@ export function SuperadminLayout({ children, currentPage, onPageChange, onLogout
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => onPageChange("dashboard")}>
                       <Building2 className="h-4 w-4 mr-2" />
-                      Switch to Wine Club View
+                      Switch to Wine Club Admin
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={onLogout}>
                       <Settings className="h-4 w-4 mr-2" />
@@ -131,7 +101,7 @@ export function SuperadminLayout({ children, currentPage, onPageChange, onLogout
                   <AvatarFallback>SA</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm">SaaS Admin</p>
+                  <p className="text-sm">SaaS Parent Admin</p>
                   <p className="text-xs text-muted-foreground">Platform Management</p>
                 </div>
               </div>

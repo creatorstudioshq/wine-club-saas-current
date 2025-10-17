@@ -9,9 +9,10 @@ import { CustomerPreferencesPage } from "./components/CustomerPreferencesPage";
 import { ShipmentBuilderPage } from "./components/ShipmentBuilderPage";
 import { SquareConfigPage } from "./components/SquareConfigPage";
 import { SuperadminDashboard } from "./components/SuperadminDashboard";
-import { ClubsOrganizationsPage } from "./components/ClubsOrganizationsPage";
-import { ClubsUsersPage } from "./components/ClubsUsersPage";
-import { ClubsShipmentProfilesPage } from "./components/ClubsShipmentProfilesPage";
+import { SuperadminLayout } from "./components/SuperadminLayout";
+import { OrganizationsPage } from "./components/ClubsOrganizationsPage";
+import { UsersPage } from "./components/ClubsUsersPage";
+import { BillingPage } from "./components/BillingPage";
 import { MarketingIntegration } from "./components/MarketingIntegration";
 import { ShippingSchedulePage } from "./components/ShippingSchedulePage";
 import { EmbeddableSignupPage } from "./components/EmbeddableSignupPage";
@@ -26,7 +27,7 @@ import { Toaster } from "./components/ui/sonner";
 import { api } from "./utils/api";
 
 type AdminPage = "dashboard" | "members" | "inventory" | "plans" | "preferences" | "shipments" | "square-config" | "superadmin" | "marketing" | "shipping-schedule" | "embeddable-signup";
-type SuperadminPage = "superadmin-dashboard" | "clubs-organizations" | "clubs-users" | "clubs-shipment-profiles" | "system-settings";
+type SuperadminPage = "saas-dashboard" | "organizations" | "users" | "billing" | "settings";
 type CustomerStep = "wine-selection" | "upsell" | "delivery" | "payment" | "preferences" | "payment-collection";
 type AppMode = "admin" | "superadmin" | "customer" | "auth" | "signup";
 
@@ -41,11 +42,10 @@ export default function App() {
 function AppContent() {
   const [appMode, setAppMode] = useState<AppMode>("auth");
   const [currentPage, setCurrentPage] = useState<AdminPage>("dashboard");
-  const [currentSuperadminPage, setCurrentSuperadminPage] = useState<SuperadminPage>("superadmin-dashboard");
+  const [currentSuperadminPage, setCurrentSuperadminPage] = useState<SuperadminPage>("saas-dashboard");
   const [customerStep, setCustomerStep] = useState<CustomerStep>("wine-selection");
   const [isDemoMode, setIsDemoMode] = useState<boolean | null>(null);
   const [isCheckingDemoMode, setIsCheckingDemoMode] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authError, setAuthError] = useState<string>("");
   const [authSuccess, setAuthSuccess] = useState<string>("");
 
@@ -71,11 +71,16 @@ function AppContent() {
     
     // Simulate auth logic - in real app, this would call Supabase
     if (email && password) {
-      setIsAuthenticated(true);
       setAppMode("admin");
     } else {
       setAuthError("Please check your credentials and try again.");
     }
+  };
+
+  const handleLogout = () => {
+    setAppMode("auth");
+    setAuthError("");
+    setAuthSuccess("");
   };
 
   const handleSignup = (data: any) => {
@@ -136,7 +141,7 @@ function AppContent() {
       const response = await api.getLiveInventory("550e8400-e29b-41d4-a716-446655440000", 'all', 1);
       clearTimeout(timeoutId);
       setIsDemoMode(!!response.isDemoMode);
-    } catch (error) {
+    } catch (error: any) {
       console.log('Demo mode refresh failed:', error.message);
       setIsDemoMode(true);
     } finally {
@@ -155,7 +160,7 @@ function AppContent() {
         const response = await api.getLiveInventory("550e8400-e29b-41d4-a716-446655440000", 'all', 1);
         clearTimeout(timeoutId);
         setIsDemoMode(!!response.isDemoMode);
-      } catch (error) {
+      } catch (error: any) {
         console.log('Demo mode check failed, assuming demo mode:', error.message);
         setIsDemoMode(true); // Assume demo mode if there's an error
       }
@@ -168,15 +173,15 @@ function AppContent() {
 
   const renderSuperadminPage = () => {
     switch (currentSuperadminPage) {
-      case "superadmin-dashboard":
+      case "saas-dashboard":
         return <SuperadminDashboard />;
-      case "clubs-organizations":
-        return <ClubsOrganizationsPage />;
-      case "clubs-users":
-        return <ClubsUsersPage />;
-      case "clubs-shipment-profiles":
-        return <ClubsShipmentProfilesPage />;
-      case "system-settings":
+      case "organizations":
+        return <OrganizationsPage />;
+      case "users":
+        return <UsersPage />;
+      case "billing":
+        return <BillingPage />;
+      case "settings":
         return (
           <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
             <div className="text-center">
@@ -314,7 +319,7 @@ function AppContent() {
               ← Back to Login
             </button>
           </div>
-          <EmbeddedSignup onSignup={handleSignup} />
+          <EmbeddedSignup onSignup={handleSignup} wineClubId="550e8400-e29b-41d4-a716-446655440000" />
         </div>
       </>
     );

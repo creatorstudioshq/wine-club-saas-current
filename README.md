@@ -2,7 +2,7 @@
 
 ## Overview
 
-A comprehensive SaaS platform for wine clubs integrated with Square API. This platform enables wine club owners to manage memberships, shipments, payments, and customer preferences through a modern web interface.
+A comprehensive SaaS platform for wine clubs integrated with Square API. This platform enables wine club owners to manage wine club membership and member shipments inclunding plans, customer tasted preferences, shipment wine 
 
 ## Architecture
 

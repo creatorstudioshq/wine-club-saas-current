@@ -21,7 +21,7 @@ interface AdminUser {
   created_at: string;
 }
 
-export function ClubsUsersPage() {
+export function UsersPage() {
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

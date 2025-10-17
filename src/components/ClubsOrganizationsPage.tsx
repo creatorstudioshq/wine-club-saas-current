@@ -12,14 +12,18 @@ interface WineClub {
   name: string;
   email: string;
   domain?: string;
+  ownerName?: string;
+  ownerEmail?: string;
   status: 'active' | 'inactive' | 'setup';
   members: number;
   monthlyRevenue: number;
   squareConnected: boolean;
+  lastShipmentDate?: string;
+  totalShipments: number;
   lastActivity: string;
 }
 
-export function ClubsOrganizationsPage() {
+export function OrganizationsPage() {
   const [wineClubs, setWineClubs] = useState<WineClub[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,15 +53,24 @@ export function ClubsOrganizationsPage() {
               // Calculate real revenue (simplified - would need actual payment data)
               const monthlyRevenue = members.length * 50; // Placeholder calculation
 
+              // Get last shipment date
+              const lastShipment = shipments.length > 0 
+                ? shipments.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+                : null;
+
               return {
                 id: club.id,
                 name: club.name,
                 email: club.email,
                 domain: club.domain || `${club.name.toLowerCase().replace(/\s+/g, '')}.com`,
+                ownerName: club.owner_name || "Unknown",
+                ownerEmail: club.owner_email || club.email,
                 status: club.subscription_status || "active",
                 members: members.length,
                 monthlyRevenue: monthlyRevenue,
                 squareConnected: !!(club.square_location_id && club.square_access_token),
+                lastShipmentDate: lastShipment ? new Date(lastShipment.created_at).toLocaleDateString() : "Never",
+                totalShipments: shipments.length,
                 lastActivity: club.updated_at ? new Date(club.updated_at).toLocaleDateString() : "Never"
               };
             } catch (error) {
@@ -67,10 +80,14 @@ export function ClubsOrganizationsPage() {
                 name: club.name,
                 email: club.email,
                 domain: club.domain || `${club.name.toLowerCase().replace(/\s+/g, '')}.com`,
+                ownerName: "Unknown",
+                ownerEmail: club.email,
                 status: "error",
                 members: 0,
                 monthlyRevenue: 0,
                 squareConnected: false,
+                lastShipmentDate: "Never",
+                totalShipments: 0,
                 lastActivity: "Error"
               };
             }
@@ -191,30 +208,32 @@ export function ClubsOrganizationsPage() {
 
       {/* Wine Clubs Table */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Wine Club Organizations</CardTitle>
-              <CardDescription>
-                Manage all wine club tenants and their connection status
-              </CardDescription>
-            </div>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Club
-            </Button>
-          </div>
-        </CardHeader>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Wine Club Organizations</CardTitle>
+                  <CardDescription>
+                    Manage wine club profiles, owners, and activity status
+                  </CardDescription>
+                </div>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Club
+                </Button>
+              </div>
+            </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Organization</TableHead>
+                <TableHead>Owner</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Members</TableHead>
                 <TableHead>Revenue</TableHead>
+                <TableHead>Last Shipment</TableHead>
+                <TableHead>Shipments</TableHead>
                 <TableHead>Square</TableHead>
-                <TableHead>Last Activity</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -229,18 +248,25 @@ export function ClubsOrganizationsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
+                    <div>
+                      <div className="font-medium">{club.ownerName}</div>
+                      <div className="text-sm text-muted-foreground">{club.ownerEmail}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <Badge className={getStatusColor(club.status)}>
                       {club.status}
                     </Badge>
                   </TableCell>
                   <TableCell>{club.members}</TableCell>
                   <TableCell>${club.monthlyRevenue.toLocaleString()}</TableCell>
+                  <TableCell>{club.lastShipmentDate}</TableCell>
+                  <TableCell>{club.totalShipments}</TableCell>
                   <TableCell>
                     <Badge variant={club.squareConnected ? "default" : "secondary"}>
                       {club.squareConnected ? "Connected" : "Not Connected"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{club.lastActivity}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="sm">

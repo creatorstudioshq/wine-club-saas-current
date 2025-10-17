@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useState } from "react";
 import { 
   Home, 
   Users, 
@@ -17,7 +16,7 @@ import {
   Code
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "./ui/sidebar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { useClient } from "../contexts/ClientContext";
@@ -89,7 +88,7 @@ export function AdminLayout({ children, currentPage, onPageChange, onLogout }: A
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => onPageChange("square-config")}>
                       <Building className="h-4 w-4 mr-2" />
-                      Configure {currentClient?.name}
+                      Configure {currentWineClub?.name}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onPageChange("superadmin")}>
                       <Shield className="h-4 w-4 mr-2" />
