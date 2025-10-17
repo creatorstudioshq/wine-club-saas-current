@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { api } from "../utils/api";
 
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 interface WineClub {
   id: string;
@@ -55,41 +54,65 @@ export function SuperadminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRealData = async () => {
+    const fetchAllWineClubs = async () => {
       try {
         setLoading(true);
         
-        // Fetch real King Frosch data
-        const [membersRes, plansRes, shipmentsRes] = await Promise.all([
-          api.getMembers(KING_FROSCH_ID).catch(() => ({ members: [] })),
-          api.getPlans(KING_FROSCH_ID).catch(() => ({ plans: [] })),
-          api.getShipments(KING_FROSCH_ID).catch(() => ({ shipments: [] }))
-        ]);
+        // Fetch all wine clubs from Supabase
+        const wineClubsRes = await api.getAllWineClubs().catch(() => ({ wineClubs: [] }));
+        const allClubs = wineClubsRes.wineClubs || [];
+        
+        // For each wine club, fetch their data
+        const clubsWithData = await Promise.all(
+          allClubs.map(async (club: any) => {
+            try {
+              const [membersRes, plansRes, shipmentsRes] = await Promise.all([
+                api.getMembers(club.id).catch(() => ({ members: [] })),
+                api.getPlans(club.id).catch(() => ({ plans: [] })),
+                api.getShipments(club.id).catch(() => ({ shipments: [] }))
+              ]);
 
-        const members = membersRes.members || [];
-        const plans = plansRes.plans || [];
-        const shipments = shipmentsRes.shipments || [];
+              const members = membersRes.members || [];
+              const plans = plansRes.plans || [];
+              const shipments = shipmentsRes.shipments || [];
 
-        // Calculate real revenue (simplified - would need actual payment data)
-        const monthlyRevenue = members.length * 50; // Placeholder calculation
+              // Calculate real revenue (simplified - would need actual payment data)
+              const monthlyRevenue = members.length * 50; // Placeholder calculation
 
-        const kingFroschClub: WineClub = {
-          id: KING_FROSCH_ID,
-          name: "King Frosch Wine Club",
-          domain: "kingfrosch.com",
-          status: "active",
-          members: members.length,
-          monthlyRevenue: monthlyRevenue,
-          squareConnected: true, // Would check actual Square connection
-          lastActivity: "Just now",
-          email: "admin@kingfrosch.com",
-          password: "admin123" // Default password - should be changeable
-        };
+              return {
+                id: club.id,
+                name: club.name,
+                domain: club.domain || `${club.name.toLowerCase().replace(/\s+/g, '')}.com`,
+                status: club.subscription_status || "active",
+                members: members.length,
+                monthlyRevenue: monthlyRevenue,
+                squareConnected: !!(club.square_location_id && club.square_access_token),
+                lastActivity: club.updated_at ? new Date(club.updated_at).toLocaleDateString() : "Never",
+                email: club.email,
+                password: "***" // Never show actual passwords
+              };
+            } catch (error) {
+              console.error(`Failed to fetch data for club ${club.name}:`, error);
+              return {
+                id: club.id,
+                name: club.name,
+                domain: club.domain || `${club.name.toLowerCase().replace(/\s+/g, '')}.com`,
+                status: "error",
+                members: 0,
+                monthlyRevenue: 0,
+                squareConnected: false,
+                lastActivity: "Error",
+                email: club.email,
+                password: "***"
+              };
+            }
+          })
+        );
 
-        setWineClubs([kingFroschClub]);
+        setWineClubs(clubsWithData);
         
       } catch (error) {
-        console.error('Failed to fetch real data:', error);
+        console.error('Failed to fetch wine clubs data:', error);
         // Fallback to empty data
         setWineClubs([]);
       } finally {
@@ -97,7 +120,7 @@ export function SuperadminDashboard() {
       }
     };
 
-    fetchRealData();
+    fetchAllWineClubs();
   }, []);
 
   const systemStats: SystemStats = {

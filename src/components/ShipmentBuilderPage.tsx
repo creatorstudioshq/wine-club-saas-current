@@ -14,9 +14,8 @@ import { Skeleton } from "./ui/skeleton";
 import { CalendarIcon, Wine, Plus, Minus, Eye, Send, RefreshCw, Users, Package, Calendar as CalendarDays, Mail, Check, Clock } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { api } from "../utils/api";
+import { useClient } from "../contexts/ClientContext";
 import { format } from "date-fns";
-
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 interface CustomerPreference {
   id: string;
@@ -50,6 +49,7 @@ interface ClubShipment {
 const samplePreferences: CustomerPreference[] = [];
 
 export function ShipmentBuilderPage() {
+  const { currentWineClub } = useClient();
   const [activeTab, setActiveTab] = useState("builder");
   const [shipments, setShipments] = useState<ClubShipment[]>([]);
   const [preferences, setPreferences] = useState<CustomerPreference[]>(samplePreferences);
@@ -71,16 +71,18 @@ export function ShipmentBuilderPage() {
   const [wineAssignments, setWineAssignments] = useState<WineAssignment[]>([]);
 
   const fetchData = async () => {
+    if (!currentWineClub) return;
+    
     try {
       setLoading(true);
       
       // Fetch live available wines from Square (no local storage)
-      const inventoryRes = await api.getLiveInventory(KING_FROSCH_ID, 'all', 0).catch(() => ({ wines: [] }));
+      const inventoryRes = await api.getLiveInventory(currentWineClub.id, 'all', 0).catch(() => ({ wines: [] }));
       setWines(inventoryRes.wines || []);
       
       // Load customer preferences from KV store (only IDs and mappings stored)
       try {
-        const preferencesRes = await api.getCustomerPreferences(KING_FROSCH_ID);
+        const preferencesRes = await api.getCustomerPreferences(currentWineClub.id);
         setPreferences(preferencesRes.preferences || samplePreferences);
       } catch (error) {
         console.info('Using sample preferences data (backend not yet configured)');
@@ -89,7 +91,7 @@ export function ShipmentBuilderPage() {
       
       // Load shipment history from KV store
       try {
-        const shipmentsRes = await api.getClubShipments(KING_FROSCH_ID);
+        const shipmentsRes = await api.getClubShipments(currentWineClub.id);
         setShipments(shipmentsRes.shipments || []);
       } catch (error) {
         console.info('Using empty shipments data (backend not yet configured)');
@@ -112,7 +114,7 @@ export function ShipmentBuilderPage() {
   const handleCreateShipment = async () => {
     try {
       const shipmentData = {
-        wine_club_id: KING_FROSCH_ID,
+        wine_club_id: currentWineClub.id,
         name: newShipment.name,
         shipment_date: newShipment.shipment_date?.toISOString() || "",
         ship_date: newShipment.ship_date?.toISOString() || "",

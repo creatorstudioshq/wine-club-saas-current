@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Wine, Mail, Lock, Sparkles } from "lucide-react";
 import { api } from "../utils/api";
+import { useClient } from "../contexts/ClientContext";
 
 interface AuthPageProps {
   onAuth: (method: 'password' | 'magic-link', email: string, password?: string) => void;
@@ -17,6 +18,7 @@ interface AuthPageProps {
 }
 
 export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthPageProps) {
+  const { currentWineClub } = useClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -37,10 +39,7 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
     setIsLoading(true);
     
     try {
-      // Use King Frosch Wine Club ID for now
-      const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
-      
-      await api.sendMagicLink(email, KING_FROSCH_ID);
+      await api.sendMagicLink(email, currentWineClub?.id || "");
       
       onAuth('magic-link', email);
     } catch (error: any) {

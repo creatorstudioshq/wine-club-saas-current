@@ -9,8 +9,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Search, RefreshCw, Wine, Package, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "../utils/api";
-
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
+import { useClient } from "../contexts/ClientContext";
 const ITEMS_PER_PAGE = 24; // 8 rows × 3 columns
 
 type WineItem = {
@@ -35,6 +34,7 @@ type WineItem = {
 };
 
 export function InventoryPageSimple() {
+  const { currentWineClub } = useClient();
   const [loading, setLoading] = useState(true);
   const [wines, setWines] = useState<WineItem[]>([]);
   const [search, setSearch] = useState("");
@@ -43,10 +43,12 @@ export function InventoryPageSimple() {
   const [currentPage, setCurrentPage] = useState(1);
 
   async function load() {
+    if (!currentWineClub) return;
+    
     setLoading(true);
     try {
       const response = await api.getLiveInventory(
-        KING_FROSCH_ID,
+        currentWineClub.id,
         'all',
         0  // 0 means no limit - get all items
       );

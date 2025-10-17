@@ -21,8 +21,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { EmbeddableSignup } from "./EmbeddableSignup";
-
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
+import { useClient } from "../contexts/ClientContext";
 
 interface EmbedConfig {
   wineClubId: string;
@@ -36,9 +35,10 @@ interface EmbedConfig {
 }
 
 export function EmbeddableSignupPage() {
+  const { currentWineClub } = useClient();
   const [activeTab, setActiveTab] = useState("preview");
   const [embedConfig, setEmbedConfig] = useState<EmbedConfig>({
-    wineClubId: KING_FROSCH_ID,
+    wineClubId: currentWineClub?.id || "",
     clubName: "King Frosch Wine Club",
     clubLogo: "",
     primaryColor: "#d97706",

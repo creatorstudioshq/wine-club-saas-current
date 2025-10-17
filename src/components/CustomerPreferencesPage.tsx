@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Plus, Edit, Trash2, Wine, User, Settings, RefreshCw, UserCheck } from "lucide-react";
 import { api } from "../utils/api";
+import { useClient } from "../contexts/ClientContext";
 
-const KING_FROSCH_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 interface GlobalPreference {
   id: string;
@@ -42,6 +42,7 @@ interface CustomerPreferenceAssignment {
 const samplePreferences: CustomerPreferenceAssignment[] = [];
 
 export function CustomerPreferencesPage() {
+  const { currentWineClub } = useClient();
   const [activeTab, setActiveTab] = useState("global-preferences");
   const [globalPreferences, setGlobalPreferences] = useState<GlobalPreference[]>([]);
   const [customerAssignments, setCustomerAssignments] = useState<CustomerPreferenceAssignment[]>([]);
@@ -70,11 +71,13 @@ export function CustomerPreferencesPage() {
   });
 
   const fetchData = async () => {
+    if (!currentWineClub) return;
+    
     try {
       setLoading(true);
       
       // Load available categories from Square inventory
-      const inventoryRes = await api.getLiveInventory(KING_FROSCH_ID, 'all', 0);
+      const inventoryRes = await api.getLiveInventory(currentWineClub.id, 'all', 0);
       const categories = new Set<string>();
       
       // Filter out wines with zero inventory and uncategorized
@@ -119,7 +122,7 @@ export function CustomerPreferencesPage() {
       
       // Load customer assignments from KV store
       try {
-        const assignmentsRes = await api.getCustomerAssignments(KING_FROSCH_ID);
+        const assignmentsRes = await api.getCustomerAssignments(currentWineClub.id);
         setCustomerAssignments(assignmentsRes.assignments || samplePreferences);
       } catch (error) {
         console.info('Using sample assignment data (backend not yet configured)');
@@ -128,7 +131,7 @@ export function CustomerPreferencesPage() {
       
       // Load global preferences from KV store
       try {
-        const globalPrefsRes = await api.getGlobalPreferences(KING_FROSCH_ID);
+        const globalPrefsRes = await api.getGlobalPreferences(currentWineClub.id);
         setGlobalPreferences(globalPrefsRes.preferences || []);
       } catch (error) {
         console.info('Using sample global preferences data (backend not yet configured)');
@@ -649,21 +652,21 @@ export function CustomerPreferencesPage() {
                     {newAssignment.preference_type === 'global_preference' && (
                       <div>
                         <Label htmlFor="global-preference-select">Select Global Preference</Label>
-                        <Select 
+                              <Select 
                           value={newAssignment.global_preference_id || ""} 
                           onValueChange={(value) => setNewAssignment({...newAssignment, global_preference_id: value})}
-                        >
-                          <SelectTrigger>
+                              >
+                                <SelectTrigger>
                             <SelectValue placeholder="Choose a global preference" />
-                          </SelectTrigger>
-                          <SelectContent>
+                                </SelectTrigger>
+                                <SelectContent>
                             {globalPreferences.map(pref => (
                               <SelectItem key={pref.id} value={pref.id}>
                                 {pref.name} - {pref.description}
                               </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                         <p className="text-sm text-muted-foreground mt-1">
                           Customer will receive wines from the categories assigned to this preference.
                         </p>
@@ -726,7 +729,7 @@ export function CustomerPreferencesPage() {
                 <TableBody>
                   {customerAssignments.map((assignment) => {
                     const globalPref = globalPreferences.find(p => p.id === assignment.global_preference_id);
-                    
+
                     return (
                       <TableRow key={assignment.id}>
                         <TableCell>
@@ -751,7 +754,7 @@ export function CustomerPreferencesPage() {
                                     {category}
                                   </Badge>
                                 ))}
-                              </div>
+                                </div>
                             </div>
                           ) : (
                             <span className="text-sm text-muted-foreground">Custom wine assignment</span>
@@ -795,7 +798,7 @@ export function CustomerPreferencesPage() {
                   // Count how many global preferences use this category
                   const categoryUsage = globalPreferences.reduce((count, pref) => {
                     return count + (pref.categories.includes(category) ? 1 : 0);
-                  }, 0);
+                    }, 0);
 
                   return (
                     <Card key={category}>
