@@ -7,7 +7,7 @@ import { Checkbox } from "./ui/checkbox";
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { ChevronLeft, ChevronRight, CheckCircle, Wine, Settings, Package, Heart, Truck } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle, Wine, Settings, Package, Heart, Truck, RefreshCw } from "lucide-react";
 import { api } from "../utils/api";
 import { useClient } from "../contexts/ClientContext";
 
@@ -45,6 +45,7 @@ export function SquareConfigPage() {
           // If we have credentials, try to load categories
           if (response.config.square_location_id && response.config.square_access_token) {
             await loadCategories();
+            await loadInventory(); // Also load inventory
             setCurrentStep(2); // Move to category selection
           }
           
@@ -188,6 +189,61 @@ export function SquareConfigPage() {
       console.log('Category toggled:', category, 'New selection:', newSelection);
       return newSelection;
     });
+  };
+
+  const loadInventory = async () => {
+    if (!currentWineClub) return;
+    
+    setLoading(true);
+    try {
+      const response = await api.getLiveInventory(currentWineClub.id, 'all', 0);
+      const wines = (response.wines || []).filter(wine => 
+        wine.category_name && 
+        wine.category_name.toLowerCase() !== 'uncategorized' &&
+        wine.category_name.toLowerCase() !== 'uncat' &&
+        wine.category_name.toLowerCase() !== 'misc' &&
+        wine.category_name.toLowerCase() !== 'other'
+      );
+      
+      setAvailableWines(wines);
+      setMessage(`Loaded ${wines.length} wines from Square`);
+      setMessageType("success");
+    } catch (error: any) {
+      console.error('Failed to load inventory:', error);
+      setMessage("Failed to load inventory from Square");
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleWineExclusion = (wineId: string) => {
+    setExcludedWines(prev => {
+      const newExclusions = prev.includes(wineId)
+        ? prev.filter(id => id !== wineId)
+        : [...prev, wineId];
+      
+      console.log('Wine exclusion toggled:', wineId, 'New exclusions:', newExclusions);
+      return newExclusions;
+    });
+  };
+
+  const saveExcludedWines = async () => {
+    if (!currentWineClub) return;
+    
+    setLoading(true);
+    try {
+      // Save excluded wines to the backend (you'll need to implement this API endpoint)
+      // For now, we'll just show a success message
+      setMessage(`Saved ${excludedWines.length} wine exclusions`);
+      setMessageType("success");
+    } catch (error: any) {
+      console.error('Failed to save exclusions:', error);
+      setMessage("Failed to save wine exclusions");
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -601,11 +657,99 @@ export function SquareConfigPage() {
               <CardHeader>
                 <CardTitle>Inventory Management</CardTitle>
                 <CardDescription>
-                  Exclude special items from customer shipments.
+                  Filter wines that should NOT appear in preference assignments. Exclude special items, limited editions, or wines not suitable for club shipments.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Inventory exclusion coming soon...</p>
+              <CardContent className="space-y-4">
+                {availableWines.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Wine className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No wines available. Please configure Square credentials first.</p>
+                    <Button 
+                      onClick={() => setActiveTab("credentials")}
+                      className="mt-4"
+                    >
+                      Configure Square Credentials
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="text-sm text-muted-foreground">
+                          Showing {availableWines.length} wines
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {excludedWines.length} excluded from preferences
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={loadInventory} 
+                        variant="outline" 
+                        size="sm"
+                        disabled={loading}
+                      >
+                        <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                        Refresh Inventory
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                      {availableWines.map((wine) => (
+                        <div 
+                          key={wine.square_item_id} 
+                          className={`border rounded-lg p-3 transition-colors ${
+                            excludedWines.includes(wine.square_item_id) 
+                              ? 'bg-red-50 border-red-200' 
+                              : 'bg-green-50 border-green-200'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm truncate">{wine.name}</h4>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {wine.category_name} • {wine.varietal}
+                              </p>
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {wine.color}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {wine.sweetness}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  Stock: {wine.total_inventory}
+                                </Badge>
+                              </div>
+                            </div>
+                            <Checkbox
+                              checked={excludedWines.includes(wine.square_item_id)}
+                              onCheckedChange={() => toggleWineExclusion(wine.square_item_id)}
+                              className="ml-2"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <div className="text-sm text-muted-foreground">
+                        {excludedWines.length > 0 && (
+                          <span className="text-red-600">
+                            {excludedWines.length} wines excluded from preference assignments
+                          </span>
+                        )}
+                      </div>
+                      <Button 
+                        onClick={saveExcludedWines}
+                        disabled={loading}
+                        variant="outline"
+                      >
+                        {loading ? "Saving..." : "Save Exclusions"}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

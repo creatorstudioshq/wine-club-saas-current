@@ -31,7 +31,6 @@ interface AdminLayoutProps {
 const navigation = [
   { name: "Dashboard", icon: Home, id: "dashboard" },
   { name: "Members", icon: Users, id: "members" },
-  { name: "Inventory", icon: Package, id: "inventory" },
   { name: "Plans", icon: CreditCard, id: "plans" },
   { name: "Preferences", icon: Heart, id: "preferences" },
   { name: "Shipments", icon: Truck, id: "shipments" },

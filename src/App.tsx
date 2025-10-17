@@ -3,7 +3,6 @@ import { ClientProvider } from "./contexts/ClientContext";
 import { AdminLayout } from "./components/AdminLayout";
 import { Dashboard } from "./components/Dashboard";
 import { MembersPage } from "./components/MembersPage";
-import { InventoryPageSimple } from "./components/InventoryPageSimple";
 import { PlansPage } from "./components/PlansPage";
 import { CustomerPreferencesPage } from "./components/CustomerPreferencesPage";
 import { ShipmentBuilderPage } from "./components/ShipmentBuilderPage";
@@ -26,7 +25,7 @@ import { WelcomeToast } from "./components/WelcomeToast";
 import { Toaster } from "./components/ui/sonner";
 import { api } from "./utils/api";
 
-type AdminPage = "dashboard" | "members" | "inventory" | "plans" | "preferences" | "shipments" | "square-config" | "superadmin" | "marketing" | "shipping-schedule" | "embeddable-signup";
+type AdminPage = "dashboard" | "members" | "plans" | "preferences" | "shipments" | "square-config" | "superadmin" | "marketing" | "shipping-schedule" | "embeddable-signup";
 type SuperadminPage = "saas-dashboard" | "organizations" | "users" | "billing" | "settings";
 type CustomerStep = "wine-selection" | "upsell" | "delivery" | "payment" | "preferences" | "payment-collection";
 type AppMode = "admin" | "superadmin" | "customer" | "auth" | "signup";
@@ -201,8 +200,6 @@ function AppContent() {
         return <Dashboard />;
       case "members":
         return <MembersPage />;
-      case "inventory":
-        return <InventoryPageSimple />;
       case "plans":
         return <PlansPage />;
       case "preferences":
