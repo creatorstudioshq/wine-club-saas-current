@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -7,6 +7,7 @@ import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Alert, AlertDescription } from "./ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { 
   Wine, 
@@ -18,6 +19,7 @@ import {
   CheckCircle,
   AlertTriangle
 } from "lucide-react";
+import { api } from "../utils/api";
 
 // Embeddable signup form - designed to be embedded on external websites
 // This component is optimized for embedding with minimal dependencies
@@ -31,42 +33,17 @@ interface EmbeddableSignupProps {
   textColor?: string;
 }
 
-// Sample plans - in production these would come from the wine club's API
-const SAMPLE_PLANS = [
-  {
-    id: "silver",
-    name: "Silver",
-    bottles: 3,
-    frequency: "Monthly",
-    price: 89,
-    discount: 15,
-    popular: false,
-    icon: <Wine className="w-6 h-6" />,
-    description: "Perfect for wine enthusiasts who want variety"
-  },
-  {
-    id: "gold", 
-    name: "Gold",
-    bottles: 6,
-    frequency: "Monthly", 
-    price: 159,
-    discount: 20,
-    popular: true,
-    icon: <Wine className="w-6 h-6" />,
-    description: "Most popular choice for serious wine lovers"
-  },
-  {
-    id: "platinum",
-    name: "Platinum", 
-    bottles: 12,
-    frequency: "Monthly",
-    price: 299,
-    discount: 25,
-    popular: false,
-    icon: <Wine className="w-6 h-6" />,
-    description: "Premium selection for collectors and connoisseurs"
-  }
-];
+interface Plan {
+  id: string;
+  name: string;
+  bottles: number;
+  frequency: string;
+  price: number;
+  discount?: number;
+  popular?: boolean;
+  icon_url?: string;
+  description?: string[];
+}
 
 export function EmbeddableSignup({
   wineClubId,
@@ -81,6 +58,8 @@ export function EmbeddableSignup({
   const [flippedCards, setFlippedCards] = useState<{[key: string]: boolean}>({});
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [swapPlanId, setSwapPlanId] = useState<string | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Step 2: Preferences
   const [winePreferences, setWinePreferences] = useState<string[]>([]);
@@ -97,6 +76,58 @@ export function EmbeddableSignup({
     state: "",
     zipCode: ""
   });
+
+  // Fetch real plans data
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        setLoading(true);
+        const response = await api.getPlans(wineClubId);
+        setPlans(response || []);
+      } catch (error) {
+        console.error('Error fetching plans:', error);
+        // Fallback to sample plans if API fails
+        setPlans([
+          {
+            id: "silver",
+            name: "Silver",
+            bottles: 3,
+            frequency: "Monthly",
+            price: 89,
+            discount: 15,
+            popular: false,
+            description: ["Perfect for wine enthusiasts who want variety"]
+          },
+          {
+            id: "gold", 
+            name: "Gold",
+            bottles: 6,
+            frequency: "Monthly", 
+            price: 159,
+            discount: 20,
+            popular: true,
+            description: ["Most popular choice for serious wine lovers"]
+          },
+          {
+            id: "platinum",
+            name: "Platinum", 
+            bottles: 12,
+            frequency: "Monthly",
+            price: 299,
+            discount: 25,
+            popular: false,
+            description: ["Premium selection for collectors and connoisseurs"]
+          }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (wineClubId) {
+      fetchPlans();
+    }
+  }, [wineClubId]);
 
   const wineCategories = [
     "Red Wine", "White Wine", "Rosé", "Sparkling", "Dessert Wine",
@@ -170,25 +201,28 @@ export function EmbeddableSignup({
             </div>
             
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
-              {SAMPLE_PLANS.map((plan) => (
-                <div key={plan.id} className="group">
-                  <Card 
-                    className={`cursor-pointer transition-all w-full overflow-hidden ${
-                      selectedPlan === plan.id 
-                        ? 'ring-2 ring-primary shadow-lg' 
-                        : 'hover:shadow-md'
-                    }`}
-                    style={{ 
-                      '--primary': primaryColor,
-                      '--background': backgroundColor 
-                    } as React.CSSProperties}
-                  >
-                    <div 
-                      className="relative h-80 cursor-pointer"
-                      onMouseEnter={() => toggleCardFlip(plan.id)}
-                      onMouseLeave={() => toggleCardFlip(plan.id)}
-                      onClick={() => setSelectedPlan(plan.id)}
-                    >
+              <TooltipProvider>
+                {plans.map((plan) => (
+                  <Tooltip key={plan.id}>
+                    <TooltipTrigger asChild>
+                      <div className="group">
+                        <Card 
+                          className={`cursor-pointer transition-all w-full overflow-hidden ${
+                            selectedPlan === plan.id 
+                              ? 'ring-2 ring-primary shadow-lg' 
+                              : 'hover:shadow-md'
+                          }`}
+                          style={{ 
+                            '--primary': primaryColor,
+                            '--background': backgroundColor 
+                          } as React.CSSProperties}
+                        >
+                          <div 
+                            className="relative h-80 cursor-pointer"
+                            onMouseEnter={() => toggleCardFlip(plan.id)}
+                            onMouseLeave={() => toggleCardFlip(plan.id)}
+                            onClick={() => setSelectedPlan(plan.id)}
+                          >
                       {/* Front of card */}
                       <div className={`absolute inset-0 transition-transform duration-700 ${
                         flippedCards[plan.id] ? 'rotate-y-180' : ''
@@ -276,7 +310,7 @@ export function EmbeddableSignup({
                               </DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 md:grid-cols-3">
-                              {SAMPLE_PLANS.filter(p => p.id !== plan.id).map((altPlan) => (
+                              {plans.filter(p => p.id !== plan.id).map((altPlan) => (
                                 <Card 
                                   key={altPlan.id} 
                                   className="cursor-pointer hover:shadow-md transition-shadow"
@@ -299,8 +333,25 @@ export function EmbeddableSignup({
                       </div>
                     </CardContent>
                   </Card>
-                </div>
-              ))}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="max-w-xs">
+                        <p className="font-medium mb-1">{plan.name} Plan</p>
+                        {plan.description && plan.description.length > 0 ? (
+                          <div>
+                            {plan.description.map((desc, index) => (
+                              <p key={index} className="text-sm text-muted-foreground">{desc}</p>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Perfect for wine enthusiasts</p>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </TooltipProvider>
             </div>
           </div>
         );
@@ -369,7 +420,7 @@ export function EmbeddableSignup({
         );
 
       case 3: {
-        const selectedPlanData = SAMPLE_PLANS.find(p => p.id === selectedPlan);
+        const selectedPlanData = plans.find(p => p.id === selectedPlan);
         return (
           <div className="space-y-6">
             <div className="text-center">

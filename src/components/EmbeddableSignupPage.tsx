@@ -158,16 +158,18 @@ export function EmbeddableSignupPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="border rounded-lg overflow-hidden" style={{ height: '800px' }}>
-                <EmbeddableSignup
-                  wineClubId={embedConfig.wineClubId}
-                  clubName={embedConfig.clubName}
-                  clubLogo={embedConfig.clubLogo}
-                  primaryColor={embedConfig.primaryColor}
-                  backgroundColor={embedConfig.backgroundColor}
-                  textColor={embedConfig.textColor}
-                  apiBaseUrl={embedConfig.apiBaseUrl}
-                />
+              <div className="border rounded-lg overflow-hidden p-4" style={{ height: '800px', backgroundColor: embedConfig.backgroundColor }}>
+                <div className="max-w-4xl mx-auto">
+                  <EmbeddableSignup
+                    wineClubId={embedConfig.wineClubId}
+                    clubName={embedConfig.clubName}
+                    clubLogo={embedConfig.clubLogo}
+                    primaryColor={embedConfig.primaryColor}
+                    backgroundColor={embedConfig.backgroundColor}
+                    textColor={embedConfig.textColor}
+                    apiBaseUrl={embedConfig.apiBaseUrl}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
