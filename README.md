@@ -2,7 +2,72 @@
 
 ## Overview
 
-A comprehensive SaaS platform for wine clubs integrated with Square API. This platform enables wine club owners to manage wine club membership and member shipments inclunding plans, customer tasted preferences, shipment wine seletion by clubs, confirmation by members and a shippin report for a shiiping vendor. 
+A comprehensive **multi-tenant SaaS platform** for wine clubs that integrates with Square API to provide end-to-end wine club management. This platform enables wine club owners to manage memberships, create subscription plans, build shipments, and process payments while providing customers with an intuitive wine selection and delivery experience.
+
+## Platform Purpose
+
+### **For Wine Club Owners (Admin Portal)**
+- **Multi-tenant architecture** - Each wine club operates independently with isolated data
+- **Square API integration** - Real-time inventory, customer management, and payment processing
+- **Member management** - Complete lifecycle from signup to shipment delivery
+- **Plan management** - Flexible subscription tiers with automatic Square customer group creation
+- **Shipment builder** - Intelligent wine assignment based on customer taste preferences
+- **Analytics dashboard** - Real-time metrics on members, plans, and revenue
+
+### **For Wine Club Members (Customer Portal)**
+- **Embedded signup widget** - Seamless integration with Square-powered websites
+- **Interactive wine selection** - Swap wines, filter by preferences, and customize shipments
+- **Flexible delivery** - Choose delivery dates and manage shipping preferences
+- **Payment management** - Secure payment processing through Square
+- **Order history** - Track past shipments and manage preferences
+
+### **For SaaS Platform Administrators**
+- **Multi-club management** - Oversee multiple wine clubs from a single dashboard
+- **User management** - Create and manage admin users across all wine clubs
+- **Billing integration** - Stripe integration for platform subscription management
+- **Analytics & reporting** - Platform-wide metrics and performance insights
+
+## Applications & Components
+
+### **1. Admin Portal** (`/admin`)
+**Purpose**: Wine club management dashboard for club owners and staff
+
+**Key Features**:
+- **Dashboard** - Real-time metrics, member distribution, plan analytics
+- **Members Management** - Add/edit members, assign plans, sync with Square
+- **Plans Management** - Create subscription tiers, manage Square customer groups
+- **Club Setup** - Multi-step wizard for Square integration and preferences
+- **Inventory Management** - Opt-out wines, manage wine categories
+- **Shipment Builder** - Create shipments, assign wines to member preferences
+- **Marketing Integration** - Email campaigns, member communication
+
+### **2. Customer Portal** (`/customer`)
+**Purpose**: Self-service portal for wine club members
+
+**Key Features**:
+- **Wine Selection Process** - Interactive wine swapping and filtering
+- **Delivery Scheduling** - Choose delivery dates and manage preferences
+- **Payment Collection** - Secure payment processing and method management
+- **Order History** - View past shipments and track delivery status
+- **Preference Management** - Update wine preferences and subscription settings
+
+### **3. SaaS Admin Portal** (`/superadmin`)
+**Purpose**: Platform management for SaaS administrators
+
+**Key Features**:
+- **Organizations Dashboard** - Manage all wine clubs and their metrics
+- **Users Management** - Create admin users, manage permissions
+- **Billing Management** - Stripe integration for platform subscriptions
+- **Settings** - Platform configuration and system settings
+
+### **4. Embedded Widget** (`/signup`)
+**Purpose**: Embeddable signup widget for Square websites
+
+**Key Features**:
+- **Seamless Integration** - Embed directly into Square-powered websites
+- **Plan Selection** - Visual plan comparison and selection
+- **Wine Preview** - Preview the wine selection process
+- **Mobile Responsive** - Optimized for all device sizes
 
 ## Architecture
 
@@ -11,12 +76,10 @@ A comprehensive SaaS platform for wine clubs integrated with Square API. This pl
 - **UI Components**: Shadcn/ui + Tailwind CSS
 - **Backend**: Supabase (PostgreSQL + Edge Functions)
 - **API Integration**: Square API (Payments, Customers, Inventory)
-- **Email Service**: Resend
+- **Email Service**: Supabase Auth (magic links, verification)
 - **Deployment**: Vercel
 
-## Starting Project Structure. 
-
-Repo maybe different due to changes and growth. 
+## Project Structure
 
 ```
 wine-club-saas-current/
@@ -25,6 +88,7 @@ wine-club-saas-current/
 │   │   ├── ui/              # Shadcn/ui components
 │   │   ├── customer/        # Customer-facing components
 │   │   └── *.tsx           # Admin components
+│   ├── contexts/            # React contexts (ClientContext)
 │   ├── supabase/
 │   │   └── functions/server/ # Edge Functions
 │   ├── utils/               # API utilities
@@ -39,30 +103,19 @@ wine-club-saas-current/
 └── CHANGELOG.md            # Change log
 ```
 
-## Key Features
+## Multi-Tenant Architecture
 
-### Wine Club Management
-- **Multi-tenant SaaS architecture** - Each wine club has isolated data
-- **Square API integration** - Real-time inventory, customers, payments
-- **Member management** - Signup, plan selection, wine preference selection,  payment methods, payments, shipping cofirmation.
-- **Plan management** - Flexible subscription plans with Square groups
-- **Shipment builder** - Wines are assign to customer preferences that are groups of wine  based on taste preferences. A shipment are the wines assigned to taste preferences based on plan quantity and then assigned a shipment date. Customers are emailed a link for confirmation and then can confirm their plans selection, swap wines and delay shipping up to two weeks. Customers are charged once they confirm. Some customers have a set selection of wines they receive every month as all clubs are monthly.
-- **Customer portal** - Widget embed inside a square store allowing for wine club sign up plan selection, wine preference selection, storing payment methods and choosing frequency. Customers cna login and see past shipments, change preferences or are signed in if logged into square 
+### **Wine Club Clients**
+- **Wine Club #1** - King Frosch Wine Club (ID: "1")
+- **Wine Club #2** - Future client (ID: "2")
+- **Wine Club #3** - Future client (ID: "3")
 
-### Portal Dashboard
-- **Real-time metrics** - Member counts, plan distribution, inventory
-- **Club setup wizard** - Multi-step configuration process
-- **Square configuration** - API credentials and category selection
-- **Global preferences** - Wine category groupings
-- **Inventory management** - Opt-out wines from shipments
-
-### Customer Experience
-- **Embedded signup** - Seamless integration with Square sites
-- **Wine selection process** - Interactive wine swapping and filtering
-- **Delivery scheduling** - Flexible delivery date selection
-- **Payment processing** - Square Web Payments integration
-- **Email notifications** - Resend-powered transactional emails
-for wine selection and receipts.
+### **Data Isolation**
+- Each wine club has isolated data in Supabase
+- Square credentials stored per wine club
+- Global preferences and plans scoped to wine club
+- Member data associated with specific wine club
+- RLS (Row Level Security) policies ensure data separation
 
 ## Getting Started
 
@@ -70,7 +123,6 @@ for wine selection and receipts.
 - Node.js 18+
 - Supabase account
 - Square Developer account
-- Resend account (for emails)
 
 ### Installation
 
@@ -87,7 +139,7 @@ for wine selection and receipts.
 
 3. **Environment setup**
    - Copy `.env.example` to `.env.local`
-   - Configure Supabase, Square, and Resend credentials
+   - Configure Supabase and Square credentials
 
 4. **Start development server**
    ```bash
@@ -96,7 +148,7 @@ for wine selection and receipts.
 
 5. **Access the application**
    - Open `http://localhost:3000`
-   - Use admin credentials or sign up as a new wine club
+   - Use demo credentials or sign up as a new wine club
 
 ## Square API Integration
 
@@ -108,24 +160,9 @@ for wine selection and receipts.
 
 ### Configuration
 - Square Location ID and Access Token stored per wine club
-- Customer groups made in Square when a plan is created in teh portal 
+- Customer groups created in Square when plans are created
 - Payment methods stored in Square customer profiles
-- Payments stored in Square for each wine shipment.
-
-## SaaS Architecture
-
-### Multi-Tenancy
-- Each wine club has isolated data in Supabase
-- Square credentials stored per wine club
-- Global preferences and plans scoped to wine club
-- Custom preferences are customers who have specific wines they want each time.
-- Member data associated with specific wine club
-
-### Data Flow
-1. **Wine Club Setup** → Square credentials → Club Setup Wizard
-2. **Member Signup** → Square customer creation → Plan assignment
-3. **Shipment Creation** → Wine assignments to preferences (auto draft, then manual editing), audit members and their plans. 
-4. **Payment Processing** → Payment methods and payment records stored in stripe.
+- Payments processed through Square for each wine shipment
 
 ## Development
 
@@ -140,6 +177,7 @@ for wine selection and receipts.
 - **Pages**: Main application pages (Dashboard, Members, etc.)
 - **Utils**: API calls and utility functions
 - **Supabase**: Edge Functions for backend logic
+- **Contexts**: React contexts for state management
 
 ## Deployment
 
@@ -160,4 +198,4 @@ The application is deployed on Vercel with automatic deployments from the main b
 
 ---
 
-**Note**: This is a SaaS platform designed for multiple wine clubs. King Frosch Wine Club is the initial client for testing and validation.
+**Note**: This is a SaaS platform designed for multiple wine clubs. King Frosch Wine Club (Wine Club #1) is the initial client for testing and validation.
