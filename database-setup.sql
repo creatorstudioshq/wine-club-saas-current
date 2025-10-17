@@ -110,6 +110,21 @@ CREATE TABLE IF NOT EXISTS custom_preferences (
 
 ALTER TABLE custom_preferences ENABLE ROW LEVEL SECURITY;
 
+-- Admin Users (for SaaS platform administration)
+CREATE TABLE IF NOT EXISTS admin_users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  wine_club_id UUID REFERENCES wine_clubs(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL DEFAULT 'admin', -- saas_admin, owner, admin, staff
+  is_active BOOLEAN DEFAULT TRUE,
+  last_login TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+
 -- RLS Policies
 -- Wine Clubs: Allow all operations for now (will be restricted later)
 CREATE POLICY "wine_clubs_policy" ON wine_clubs
@@ -134,6 +149,9 @@ CREATE POLICY "member_selections_policy" ON member_selections
 CREATE POLICY "custom_preferences_policy" ON custom_preferences
   FOR ALL USING (true);
 
+CREATE POLICY "admin_users_policy" ON admin_users
+  FOR ALL USING (true);
+
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_members_wine_club_id ON members(wine_club_id);
 CREATE INDEX IF NOT EXISTS idx_shipments_wine_club_id ON shipments(wine_club_id);
@@ -142,6 +160,8 @@ CREATE INDEX IF NOT EXISTS idx_member_selections_approval_token ON member_select
 CREATE INDEX IF NOT EXISTS idx_member_selections_member_id ON member_selections(member_id);
 CREATE INDEX IF NOT EXISTS idx_subscription_plans_wine_club_id ON subscription_plans(wine_club_id);
 CREATE INDEX IF NOT EXISTS idx_custom_preferences_wine_club_id ON custom_preferences(wine_club_id);
+CREATE INDEX IF NOT EXISTS idx_admin_users_wine_club_id ON admin_users(wine_club_id);
+CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email);
 
 -- Insert Wine Club Client #1 (King Frosch)
 INSERT INTO wine_clubs (id, name, email) VALUES 
@@ -154,3 +174,9 @@ INSERT INTO subscription_plans (wine_club_id, name, bottle_count, frequency, dis
 ('1', 'Silver', 6, 'monthly', 15.00, ARRAY['Most popular choice for serious wine lovers', 'Expanded selection with exclusive bottles']),
 ('1', 'Platinum', 12, 'monthly', 20.00, ARRAY['Premium selection for collectors and connoisseurs', 'Largest selection with rare finds'])
 ON CONFLICT DO NOTHING;
+
+-- Insert Admin Users
+INSERT INTO admin_users (email, name, role, wine_club_id) VALUES
+('jimmy@arccom.io', 'Jimmy Arc', 'saas_admin', NULL), -- SaaS Super Admin
+('klausbellinghausen@gmail.com', 'Klaus Bellinghausen', 'owner', '1') -- King Frosch Owner
+ON CONFLICT (email) DO NOTHING;

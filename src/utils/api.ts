@@ -418,5 +418,52 @@ export const api = {
     });
     if (!res.ok) throw new Error(`Square tracking update failed: ${res.status}`);
     return res.json();
+  },
+
+  // Admin Users
+  async getAllAdminUsers() {
+    const { data, error } = await supabase
+      .from('admin_users')
+      .select(`
+        *,
+        wine_clubs(name)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return { adminUsers: data || [] };
+  },
+
+  async createAdminUser(userData: any) {
+    const { data, error } = await supabase
+      .from('admin_users')
+      .insert(userData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updateAdminUser(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('admin_users')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteAdminUser(id: string) {
+    const { error } = await supabase
+      .from('admin_users')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
   }
 };
