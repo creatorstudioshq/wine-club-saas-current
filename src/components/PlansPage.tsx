@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Plus, Edit, Trash2, Package, Percent, RefreshCw, MapPin, DollarSign } from "lucide-react";
+import { Plus, Edit, Trash2, Package, Percent, RefreshCw, MapPin, DollarSign, Upload } from "lucide-react";
 import { api } from "../utils/api";
 import { useClient } from "../contexts/ClientContext";
 
@@ -184,6 +184,20 @@ export function PlansPage() {
     setRefreshing(true);
     await fetchData();
     setRefreshing(false);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check if it's an image file
+      if (file.type.startsWith('image/')) {
+        // Create a URL for the uploaded file
+        const imageUrl = URL.createObjectURL(file);
+        setNewPlan({...newPlan, icon_url: imageUrl});
+      } else {
+        alert('Please select an image file (PNG, JPG, GIF, etc.)');
+      }
+    }
   };
 
   const handleCreatePlan = async () => {
@@ -454,7 +468,7 @@ export function PlansPage() {
                     Create Plan
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto mx-auto my-auto">
+                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Create New Subscription Plan</DialogTitle>
                     <DialogDescription>
@@ -545,17 +559,37 @@ export function PlansPage() {
                               <Package className="h-6 w-6 text-gray-400" />
                             </div>
                           )}
-                          <div className="flex-1">
+                          <div className="flex-1 space-y-2">
                             <Input
                               id="plan-icon"
                               value={newPlan.icon_url || ""}
                               onChange={(e) => setNewPlan({...newPlan, icon_url: e.target.value})}
-                              placeholder="Enter image URL or upload file"
+                              placeholder="Enter image URL"
                             />
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                                className="hidden"
+                                id="file-upload"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => document.getElementById('file-upload')?.click()}
+                              >
+                                <Upload className="h-4 w-4 mr-2" />
+                                Upload File
+                              </Button>
+                              <span className="text-xs text-muted-foreground">or</span>
+                              <span className="text-xs text-muted-foreground">Enter URL above</span>
+                            </div>
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Enter an image URL or upload a file to customize the plan icon
+                          Upload an image file or enter an image URL to customize the plan icon
                         </p>
                       </div>
                     </div>
@@ -663,7 +697,7 @@ export function PlansPage() {
 
               {/* Edit Plan Dialog */}
               <Dialog open={isEditPlanOpen} onOpenChange={setIsEditPlanOpen}>
-                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto mx-auto my-auto">
+                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Edit Subscription Plan</DialogTitle>
                     <DialogDescription>
@@ -754,17 +788,37 @@ export function PlansPage() {
                               <Package className="h-6 w-6 text-gray-400" />
                             </div>
                           )}
-                          <div className="flex-1">
+                          <div className="flex-1 space-y-2">
                             <Input
                               id="edit-plan-icon"
                               value={newPlan.icon_url || ""}
                               onChange={(e) => setNewPlan({...newPlan, icon_url: e.target.value})}
-                              placeholder="Enter image URL or upload file"
+                              placeholder="Enter image URL"
                             />
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                                className="hidden"
+                                id="edit-file-upload"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => document.getElementById('edit-file-upload')?.click()}
+                              >
+                                <Upload className="h-4 w-4 mr-2" />
+                                Upload File
+                              </Button>
+                              <span className="text-xs text-muted-foreground">or</span>
+                              <span className="text-xs text-muted-foreground">Enter URL above</span>
+                            </div>
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Enter an image URL or upload a file to customize the plan icon
+                          Upload an image file or enter an image URL to customize the plan icon
                         </p>
                       </div>
                     </div>
@@ -1030,7 +1084,7 @@ export function PlansPage() {
                     Add Zone
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto mx-auto my-auto">
+                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Create New Shipping Zone</DialogTitle>
                     <DialogDescription>
@@ -1085,7 +1139,7 @@ export function PlansPage() {
 
               {/* Edit Shipping Zone Dialog */}
               <Dialog open={isEditShippingOpen} onOpenChange={setIsEditShippingOpen}>
-                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto mx-auto my-auto">
+                <DialogContent className="w-[90vw] max-w-lg h-auto max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Edit Shipping Zone</DialogTitle>
                     <DialogDescription>
