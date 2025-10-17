@@ -72,9 +72,9 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
 
         <Card className="shadow-xl">
           <CardHeader>
-            <CardTitle>Welcome Back</CardTitle>
+            <CardTitle>Wine Club Admin Portal</CardTitle>
             <CardDescription>
-              Sign in to access your wine club dashboard
+              Sign in to access your wine club management dashboard
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -92,7 +92,7 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
                     <Input
                       id="email"
                       type="email"
-                      placeholder="admin@example.com"
+                      placeholder="admin@yourwineclub.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -132,7 +132,7 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
                     <Input
                       id="magic-email"
                       type="email"
-                      placeholder="admin@example.com"
+                      placeholder="admin@yourwineclub.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -164,39 +164,38 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
                   Demo credentials for testing:
                 </p>
                 <div className="bg-muted/50 rounded-lg p-3 text-sm font-mono space-y-1">
-                  <p><strong>Email:</strong> demo@wineclub.com</p>
-                  <p><strong>Password:</strong> demo123</p>
+                  <p><strong>SaaS Admin:</strong> jimmy@arccom.io</p>
+                  <p><strong>Wine Club Owner:</strong> klausbellinghausen@gmail.com</p>
+                  <p><strong>Demo Account:</strong> demo@wineclub.com</p>
                 </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onAuth('password', 'demo@wineclub.com', 'demo123')}
-                  className="w-full mt-2"
-                >
-                  Quick Login with Demo Account
-                </Button>
-              </div>
-            </div>
-
-            {/* Sign Up CTA */}
-            {onSignupClick && (
-              <div className="mt-6 pt-6 border-t">
-                <div className="text-center space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    New wine club member?
-                  </p>
-                  <Button 
-                    variant="outline" 
+                <div className="grid grid-cols-1 gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onAuth('password', 'jimmy@arccom.io', 'admin123')}
                     className="w-full"
-                    onClick={onSignupClick}
-                    type="button"
                   >
-                    Join the Wine Club
-                    <Sparkles className="w-4 h-4 ml-2" />
+                    Login as SaaS Admin
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onAuth('password', 'klausbellinghausen@gmail.com', 'owner123')}
+                    className="w-full"
+                  >
+                    Login as Wine Club Owner
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onAuth('password', 'demo@wineclub.com', 'demo123')}
+                    className="w-full"
+                  >
+                    Login as Demo Account
                   </Button>
                 </div>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
 

@@ -20,7 +20,8 @@ interface Plan {
   frequency_options: number[]; // 2, 4, 6 times per year
   pricing_type: 'discount' | 'fixed_price';
   fixed_price?: number;
-  description?: string;
+  description?: string[];
+  icon_url?: string;
   is_active: boolean;
   square_segment_id?: string; // Square customer group ID
 }
@@ -41,7 +42,7 @@ const defaultPlans: Plan[] = [
     discount_percentage: 10,
     frequency_options: [2, 4, 6],
     pricing_type: 'discount',
-    description: "Perfect starter plan for wine enthusiasts",
+    description: ["Perfect starter plan for wine enthusiasts", "Curated selection of premium wines", "Monthly tasting notes included"],
     is_active: true
   },
   {
@@ -51,7 +52,7 @@ const defaultPlans: Plan[] = [
     discount_percentage: 15,
     frequency_options: [2, 4, 6],
     pricing_type: 'discount',
-    description: "Great value for regular wine drinkers",
+    description: ["Great value for regular wine drinkers", "Mix of red and white wines", "Access to member-only events"],
     is_active: true
   },
   {
@@ -61,7 +62,7 @@ const defaultPlans: Plan[] = [
     discount_percentage: 20,
     frequency_options: [2, 4, 6],
     pricing_type: 'discount',
-    description: "Premium plan for wine connoisseurs",
+    description: ["Premium plan for wine connoisseurs", "Rare and limited edition wines", "Personal sommelier consultation", "Priority access to new releases"],
     is_active: true
   }
 ];
@@ -124,6 +125,8 @@ export function PlansPage() {
     discount_percentage: 10,
     frequency_options: [2, 4, 6],
     pricing_type: 'discount',
+    description: [],
+    icon_url: "",
     is_active: true
   });
 
@@ -252,6 +255,8 @@ export function PlansPage() {
       discount_percentage: 10,
       frequency_options: [2, 4, 6],
       pricing_type: 'discount',
+      description: [],
+      icon_url: "",
       is_active: true
     });
   };
@@ -291,6 +296,8 @@ export function PlansPage() {
       discount_percentage: 10,
       frequency_options: [2, 4, 6],
       pricing_type: 'discount',
+      description: [],
+      icon_url: "",
       is_active: true
     });
   };
@@ -466,13 +473,91 @@ export function PlansPage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="plan-description">Description (Optional)</Label>
-                      <Input
-                        id="plan-description"
-                        value={newPlan.description || ""}
-                        onChange={(e) => setNewPlan({...newPlan, description: e.target.value})}
-                        placeholder="Brief description of this plan"
-                      />
+                      <Label htmlFor="plan-description">Plan Description</Label>
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Add multiple description lines for this plan:
+                        </p>
+                        {(newPlan.description || []).map((desc, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={desc}
+                              onChange={(e) => {
+                                const newDesc = [...(newPlan.description || [])];
+                                newDesc[index] = e.target.value;
+                                setNewPlan({...newPlan, description: newDesc});
+                              }}
+                              placeholder={`Description line ${index + 1}`}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const newDesc = [...(newPlan.description || [])];
+                                newDesc.splice(index, 1);
+                                setNewPlan({...newPlan, description: newDesc});
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setNewPlan({
+                              ...newPlan, 
+                              description: [...(newPlan.description || []), ""]
+                            });
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Description Line
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="plan-icon">Plan Icon (Optional)</Label>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-4">
+                          {newPlan.icon_url ? (
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={newPlan.icon_url} 
+                                alt="Plan icon" 
+                                className="w-12 h-12 rounded-lg object-cover"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setNewPlan({...newPlan, icon_url: ""})}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                              <Package className="h-6 w-6 text-gray-400" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <Input
+                              id="plan-icon"
+                              value={newPlan.icon_url || ""}
+                              onChange={(e) => setNewPlan({...newPlan, icon_url: e.target.value})}
+                              placeholder="Enter image URL or upload file"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Enter an image URL or upload a file to customize the plan icon
+                        </p>
+                      </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
@@ -597,13 +682,91 @@ export function PlansPage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="edit-plan-description">Description (Optional)</Label>
-                      <Input
-                        id="edit-plan-description"
-                        value={newPlan.description || ""}
-                        onChange={(e) => setNewPlan({...newPlan, description: e.target.value})}
-                        placeholder="Brief description of this plan"
-                      />
+                      <Label htmlFor="edit-plan-description">Plan Description</Label>
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Add multiple description lines for this plan:
+                        </p>
+                        {(newPlan.description || []).map((desc, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={desc}
+                              onChange={(e) => {
+                                const newDesc = [...(newPlan.description || [])];
+                                newDesc[index] = e.target.value;
+                                setNewPlan({...newPlan, description: newDesc});
+                              }}
+                              placeholder={`Description line ${index + 1}`}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const newDesc = [...(newPlan.description || [])];
+                                newDesc.splice(index, 1);
+                                setNewPlan({...newPlan, description: newDesc});
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setNewPlan({
+                              ...newPlan, 
+                              description: [...(newPlan.description || []), ""]
+                            });
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Description Line
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit-plan-icon">Plan Icon (Optional)</Label>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-4">
+                          {newPlan.icon_url ? (
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={newPlan.icon_url} 
+                                alt="Plan icon" 
+                                className="w-12 h-12 rounded-lg object-cover"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setNewPlan({...newPlan, icon_url: ""})}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                              <Package className="h-6 w-6 text-gray-400" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <Input
+                              id="edit-plan-icon"
+                              value={newPlan.icon_url || ""}
+                              onChange={(e) => setNewPlan({...newPlan, icon_url: e.target.value})}
+                              placeholder="Enter image URL or upload file"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Enter an image URL or upload a file to customize the plan icon
+                        </p>
+                      </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
@@ -724,11 +887,28 @@ export function PlansPage() {
                   {planStats.map((plan) => (
                     <TableRow key={plan.id}>
                       <TableCell>
-                        <div>
-                          <p className="font-medium">{plan.name}</p>
-                          {plan.description && (
-                            <p className="text-sm text-muted-foreground">{plan.description}</p>
+                        <div className="flex items-center gap-3">
+                          {plan.icon_url ? (
+                            <img 
+                              src={plan.icon_url} 
+                              alt={`${plan.name} icon`} 
+                              className="w-8 h-8 rounded object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                            </div>
                           )}
+                          <div>
+                            <p className="font-medium">{plan.name}</p>
+                            {plan.description && plan.description.length > 0 && (
+                              <div className="text-sm text-muted-foreground">
+                                {plan.description.map((desc, index) => (
+                                  <p key={index}>{desc}</p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>

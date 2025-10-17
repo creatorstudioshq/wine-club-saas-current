@@ -68,9 +68,26 @@ function AppContent() {
       return;
     }
     
-    // Simulate auth logic - in real app, this would call Supabase
+    // Route different user types to appropriate dashboards
     if (email && password) {
-      setAppMode("admin");
+      if (email === 'jimmy@arccom.io') {
+        // SaaS Admin - Jimmy ArcCom
+        setAppMode("superadmin");
+        setCurrentSuperadminPage("saas-dashboard");
+      } else if (email === 'klausbellinghausen@gmail.com') {
+        // Wine Club Owner - Klaus Bellinghausen
+        setAppMode("admin");
+        setCurrentPage("dashboard");
+      } else if (email === 'demo@wineclub.com') {
+        // Demo account
+        setAppMode("admin");
+        setCurrentPage("dashboard");
+      } else {
+        // Check if this is a wine club member trying to login
+        // For now, show error message directing them to wine club domain
+        setAuthError("Members should login at their wine club's website. Please contact your wine club administrator for the correct login URL.");
+        return;
+      }
     } else {
       setAuthError("Please check your credentials and try again.");
     }
