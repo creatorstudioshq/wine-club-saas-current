@@ -86,39 +86,8 @@ export function EmbeddableSignup({
         setPlans(response || []);
       } catch (error) {
         console.error('Error fetching plans:', error);
-        // Fallback to sample plans if API fails
-        setPlans([
-          {
-            id: "silver",
-            name: "Silver",
-            bottles: 3,
-            frequency: "Monthly",
-            price: 89,
-            discount: 15,
-            popular: false,
-            description: ["Perfect for wine enthusiasts who want variety"]
-          },
-          {
-            id: "gold", 
-            name: "Gold",
-            bottles: 6,
-            frequency: "Monthly", 
-            price: 159,
-            discount: 20,
-            popular: true,
-            description: ["Most popular choice for serious wine lovers"]
-          },
-          {
-            id: "platinum",
-            name: "Platinum", 
-            bottles: 12,
-            frequency: "Monthly",
-            price: 299,
-            discount: 25,
-            popular: false,
-            description: ["Premium selection for collectors and connoisseurs"]
-          }
-        ]);
+        // No fallback data - show empty state if no plans exist
+        setPlans([]);
       } finally {
         setLoading(false);
       }
@@ -200,9 +169,21 @@ export function EmbeddableSignup({
               <p className="text-gray-600">Select the perfect wine club membership for you</p>
             </div>
             
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
-              <TooltipProvider>
-                {plans.map((plan) => (
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading plans...</p>
+              </div>
+            ) : plans.length === 0 ? (
+              <div className="text-center py-8">
+                <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Plans Available</h3>
+                <p className="text-gray-600">Please contact the wine club administrator to set up membership plans.</p>
+              </div>
+            ) : (
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
+                <TooltipProvider>
+                  {plans.map((plan) => (
                   <Tooltip key={plan.id}>
                     <TooltipTrigger asChild>
                       <div className="group">
@@ -353,6 +334,7 @@ export function EmbeddableSignup({
                 ))}
               </TooltipProvider>
             </div>
+            )}
           </div>
         );
 
@@ -542,7 +524,7 @@ export function EmbeddableSignup({
       className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor }}
     >
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-4xl mx-10 my-5">
         <Card className="shadow-xl">
           <CardContent className="p-8">
             {/* Header */}
