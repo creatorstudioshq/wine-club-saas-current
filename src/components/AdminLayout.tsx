@@ -20,12 +20,13 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { useClient } from "../contexts/ClientContext";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
   currentPage: string;
   onPageChange: (page: string) => void;
+  onLogout: () => void;
 }
 
 const navigation = [
@@ -41,15 +42,8 @@ const navigation = [
   { name: "Embeddable Signup", icon: Code, id: "embeddable-signup" },
 ];
 
-const mockClients = [
-  { id: "king-frosch", name: "King Frosch Wine Club", logo: "KF" },
-  { id: "vintage-valley", name: "Vintage Valley", logo: "VV" },
-  { id: "noble-wines", name: "Noble Wines", logo: "NW" },
-];
-
-export function AdminLayout({ children, currentPage, onPageChange }: AdminLayoutProps) {
-  const [selectedClient, setSelectedClient] = useState("king-frosch");
-  const currentClient = mockClients.find(c => c.id === selectedClient);
+export function AdminLayout({ children, currentPage, onPageChange, onLogout }: AdminLayoutProps) {
+  const { currentWineClub } = useClient();
 
   return (
     <SidebarProvider>
@@ -59,34 +53,13 @@ export function AdminLayout({ children, currentPage, onPageChange }: AdminLayout
             <div className="flex items-center gap-2">
               <Wine className="h-8 w-8 text-primary" />
               <div>
-                <h2>Wine Club SaaS</h2>
+                <h2>Wine Club Manager</h2>
                 <p className="text-sm text-muted-foreground">Admin Panel</p>
               </div>
             </div>
           </SidebarHeader>
           
           <SidebarContent className="p-4">
-            <div className="mb-6">
-              <label className="text-sm text-muted-foreground mb-2 block">Select Client</label>
-              <Select value={selectedClient} onValueChange={setSelectedClient}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockClients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs">{client.logo}</AvatarFallback>
-                        </Avatar>
-                        {client.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <SidebarMenu>
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.id}>
@@ -139,16 +112,16 @@ export function AdminLayout({ children, currentPage, onPageChange }: AdminLayout
               <SidebarTrigger />
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>{currentClient?.logo}</AvatarFallback>
+                  <AvatarFallback>{currentWineClub?.name?.substring(0, 2).toUpperCase() || "WC"}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm">{currentClient?.name}</p>
+                  <p className="text-sm">{currentWineClub?.name || "Wine Club"}</p>
                   <p className="text-xs text-muted-foreground">Wine Club Management</p>
                 </div>
               </div>
               <div className="ml-auto flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => onPageChange("customer-portal")}>
-                  View Customer Portal
+                <Button variant="outline" size="sm" onClick={onLogout}>
+                  Logout
                 </Button>
               </div>
             </div>

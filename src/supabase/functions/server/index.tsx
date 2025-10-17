@@ -889,7 +889,23 @@ app.post("/make-server-9d538b9c/square-config", async (c) => {
       updated_at: new Date().toISOString()
     };
     
+    // Save to KV store
     await kv.set(configKey, config);
+    
+    // Also save to Supabase wine_clubs table
+    const { error: updateError } = await supabase
+      .from('wine_clubs')
+      .update({
+        square_location_id,
+        square_access_token,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', wine_club_id);
+    
+    if (updateError) {
+      console.error('Error updating wine_clubs table:', updateError);
+      // Don't fail the request, just log the error
+    }
     
     return c.json({ 
       success: true, 

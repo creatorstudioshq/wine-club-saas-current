@@ -326,7 +326,9 @@ export function PlansPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    if (currentWineClub) {
+      fetchData();
+    }
   }, [currentWineClub]);
 
   // Calculate stats
