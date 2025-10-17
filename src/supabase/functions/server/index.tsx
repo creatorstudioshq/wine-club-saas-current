@@ -93,6 +93,28 @@ app.post("/make-server-9d538b9c/members", async (c) => {
       return c.json({ error: error.message }, 500);
     }
 
+    // If member has a plan and Square customer ID, add to Square group
+    if (member.subscription_plan_id && member.square_customer_id) {
+      try {
+        const { data: plan } = await supabase
+          .from('subscription_plans')
+          .select('square_segment_id')
+          .eq('id', member.subscription_plan_id)
+          .single();
+        
+        if (plan?.square_segment_id) {
+          await squareHelpers.addCustomerToSegment(
+            memberData.wine_club_id,
+            member.square_customer_id,
+            plan.square_segment_id
+          );
+        }
+      } catch (squareError) {
+        console.error('Failed to add member to Square group:', squareError);
+        // Don't fail member creation if Square group assignment fails
+      }
+    }
+
     return c.json({ member });
   } catch (error) {
     console.error('Create member error:', error);
@@ -105,6 +127,13 @@ app.put("/make-server-9d538b9c/members/:memberId", async (c) => {
     const memberId = c.req.param('memberId');
     const updateData = await c.req.json();
     
+    // Get current member data to check for plan changes
+    const { data: currentMember } = await supabase
+      .from('members')
+      .select('subscription_plan_id, square_customer_id, wine_club_id')
+      .eq('id', memberId)
+      .single();
+
     const { data: member, error } = await supabase
       .from('members')
       .update(updateData)
@@ -114,6 +143,51 @@ app.put("/make-server-9d538b9c/members/:memberId", async (c) => {
 
     if (error) {
       return c.json({ error: error.message }, 500);
+    }
+
+    // If plan changed and member has Square customer ID, update Square groups
+    if (updateData.subscription_plan_id && 
+        updateData.subscription_plan_id !== currentMember?.subscription_plan_id &&
+        currentMember?.square_customer_id) {
+      
+      try {
+        const wineClubId = currentMember.wine_club_id;
+        
+        // Get the new plan's Square segment ID
+        const { data: newPlan } = await supabase
+          .from('subscription_plans')
+          .select('square_segment_id')
+          .eq('id', updateData.subscription_plan_id)
+          .single();
+
+        // Remove from old plan's group (if exists)
+        if (currentMember.subscription_plan_id) {
+          const { data: oldPlan } = await supabase
+            .from('subscription_plans')
+            .select('square_segment_id')
+            .eq('id', currentMember.subscription_plan_id)
+            .single();
+          
+          if (oldPlan?.square_segment_id) {
+            await squareHelpers.removeCustomerFromSegment(
+              currentMember.square_customer_id, 
+              oldPlan.square_segment_id
+            );
+          }
+        }
+
+        // Add to new plan's group (if exists)
+        if (newPlan?.square_segment_id) {
+          await squareHelpers.addCustomerToSegment(
+            wineClubId,
+            currentMember.square_customer_id,
+            newPlan.square_segment_id
+          );
+        }
+      } catch (squareError) {
+        console.error('Failed to update Square groups for member:', squareError);
+        // Don't fail the member update if Square group update fails
+      }
     }
 
     return c.json({ member });
@@ -549,12 +623,24 @@ app.post("/make-server-9d538b9c/square/sync-customers", async (c) => {
     // For each Square customer, create or update member
     for (const customer of squareCustomers) {
       if (customer.email_address?.email_address) {
+        // Better name parsing from Square customer data
+        let fullName = 'Unknown';
+        if (customer.given_name && customer.family_name) {
+          fullName = `${customer.given_name} ${customer.family_name}`;
+        } else if (customer.given_name) {
+          fullName = customer.given_name;
+        } else if (customer.family_name) {
+          fullName = customer.family_name;
+        } else if (customer.nickname) {
+          fullName = customer.nickname;
+        } else if (customer.company_name) {
+          fullName = customer.company_name;
+        }
+
         const memberData = {
           wine_club_id,
           email: customer.email_address.email_address,
-          name: customer.given_name && customer.family_name 
-            ? `${customer.given_name} ${customer.family_name}`
-            : customer.given_name || customer.family_name || 'Unknown',
+          name: fullName,
           phone: customer.phone_number?.phone_number || null,
           square_customer_id: customer.id,
           has_payment_method: customer.cards && customer.cards.length > 0,

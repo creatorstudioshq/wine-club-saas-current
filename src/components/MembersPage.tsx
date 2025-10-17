@@ -57,8 +57,8 @@ export function MembersPage() {
     setRefreshing(false);
   };
 
-  const handleEditMember = (member) => {
-    setEditingMember(member);
+  const handleEditMember = (member: any) => {
+    setEditingMember({ ...member });
     setIsEditModalOpen(true);
   };
 
@@ -81,15 +81,16 @@ export function MembersPage() {
       const result = await api.updateMember(editingMember.id, updateData);
       console.log('Update result:', result);
       
+      // Refresh data to show updated information
       await fetchData();
       setIsEditModalOpen(false);
       setEditingMember(null);
       
       // Show success message
-      alert('Member updated successfully!');
-    } catch (error) {
+      alert('Member updated successfully! Square groups will be updated automatically.');
+    } catch (error: any) {
       console.error('Failed to update member:', error);
-      alert('Failed to update member: ' + error.message);
+      alert('Failed to update member: ' + (error.message || 'Unknown error'));
     }
   };
 
