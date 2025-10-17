@@ -10,6 +10,7 @@ import { Checkbox } from "./ui/checkbox";
 import { Switch } from "./ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Alert, AlertDescription } from "./ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { 
   Package, 
   CheckCircle, 
@@ -22,7 +23,10 @@ import {
   Minus,
   Search,
   Filter,
-  Download
+  Download,
+  Upload,
+  Mail,
+  FileText
 } from "lucide-react";
 import { api } from "../utils/api";
 import { useClient } from "../contexts/ClientContext";
@@ -111,6 +115,15 @@ export function FulfillmentPage() {
   
   // Shipped Tab
   const [shippedOrders, setShippedOrders] = useState<ShippedOrder[]>([]);
+
+  // CSV Export functionality
+  const [csvEmail, setCsvEmail] = useState("");
+  const [saveEmail, setSaveEmail] = useState(false);
+  const [isCsvDialogOpen, setIsCsvDialogOpen] = useState(false);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [trackingFile, setTrackingFile] = useState<File | null>(null);
+  const [csvExportLoading, setCsvExportLoading] = useState(false);
+  const [trackingUploadLoading, setTrackingUploadLoading] = useState(false);
 
   const fetchOrders = async () => {
     if (!currentWineClub) return;
@@ -259,6 +272,132 @@ export function FulfillmentPage() {
     setSelectedApprovedOrders([]);
   };
 
+  const generateCsvData = () => {
+    const csvData = shippedOrders.map(order => ({
+      'Order Number': order.order_number,
+      'Customer Name': order.customer_name,
+      'Customer Email': order.customer_email,
+      'Tracking Number': order.tracking_number,
+      'Shipped Date': new Date(order.shipped_at).toLocaleDateString(),
+      'Total Items': order.shipped_items.length,
+      'Items': order.shipped_items.map(item => `${item.wine_name} (${item.quantity})`).join('; ')
+    }));
+    
+    return csvData;
+  };
+
+  const exportCsv = async () => {
+    if (!csvEmail) {
+      alert('Please enter an email address');
+      return;
+    }
+
+    try {
+      setCsvExportLoading(true);
+      
+      const csvData = generateCsvData();
+      const csvContent = [
+        // CSV Header
+        Object.keys(csvData[0] || {}).join(','),
+        // CSV Rows
+        ...csvData.map(row => Object.values(row).map(value => `"${value}"`).join(','))
+      ].join('\n');
+
+      // Create and download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fulfillment-export-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      // Send email with CSV (this would call your email service)
+      await api.sendFulfillmentCsv(csvEmail, csvContent, saveEmail);
+      
+      setIsCsvDialogOpen(false);
+      alert('CSV exported and email sent successfully!');
+      
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      alert('Error exporting CSV. Please try again.');
+    } finally {
+      setCsvExportLoading(false);
+    }
+  };
+
+  const handleTrackingFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'text/csv') {
+      setTrackingFile(file);
+    } else {
+      alert('Please select a valid CSV file');
+    }
+  };
+
+  const uploadTrackingCsv = async () => {
+    if (!trackingFile) {
+      alert('Please select a CSV file');
+      return;
+    }
+
+    try {
+      setTrackingUploadLoading(true);
+      
+      const text = await trackingFile.text();
+      const lines = text.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      
+      // Expected headers: Order Number, Tracking Number
+      const orderNumberIndex = headers.findIndex(h => h.toLowerCase().includes('order'));
+      const trackingNumberIndex = headers.findIndex(h => h.toLowerCase().includes('tracking'));
+      
+      if (orderNumberIndex === -1 || trackingNumberIndex === -1) {
+        alert('CSV must contain "Order Number" and "Tracking Number" columns');
+        return;
+      }
+
+      const trackingUpdates: { [orderNumber: string]: string } = {};
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        if (values[orderNumberIndex] && values[trackingNumberIndex]) {
+          trackingUpdates[values[orderNumberIndex]] = values[trackingNumberIndex];
+        }
+      }
+
+      // Update shipped orders with tracking numbers
+      const updatedShippedOrders = shippedOrders.map(order => {
+        const trackingNumber = trackingUpdates[order.order_number];
+        if (trackingNumber) {
+          return {
+            ...order,
+            tracking_number: trackingNumber,
+            shipped_at: new Date().toISOString()
+          };
+        }
+        return order;
+      });
+
+      setShippedOrders(updatedShippedOrders);
+      
+      // Update Square orders with tracking numbers
+      await api.updateSquareOrderTracking(trackingUpdates);
+      
+      setIsUploadDialogOpen(false);
+      setTrackingFile(null);
+      alert('Tracking numbers updated successfully!');
+      
+    } catch (error) {
+      console.error('Error uploading tracking CSV:', error);
+      alert('Error uploading tracking CSV. Please try again.');
+    } finally {
+      setTrackingUploadLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
   }, [currentWineClub, onlineOnly]);
@@ -280,6 +419,133 @@ export function FulfillmentPage() {
             />
             <Label>Online Only</Label>
           </div>
+          
+          {/* CSV Export Dialog */}
+          <Dialog open={isCsvDialogOpen} onOpenChange={setIsCsvDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <FileText className="h-4 w-4 mr-2" />
+                Send CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Export Fulfillment CSV</DialogTitle>
+                <DialogDescription>
+                  Export shipped orders to CSV and send via email
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="csv-email">Email Address</Label>
+                  <Input
+                    id="csv-email"
+                    type="email"
+                    placeholder="recipient@example.com"
+                    value={csvEmail}
+                    onChange={(e) => setCsvEmail(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={saveEmail}
+                    onCheckedChange={setSaveEmail}
+                  />
+                  <Label>Save email for future exports</Label>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p>CSV will include:</p>
+                  <ul className="list-disc list-inside mt-1">
+                    <li>Order Number</li>
+                    <li>Customer Name & Email</li>
+                    <li>Tracking Number</li>
+                    <li>Shipped Date</li>
+                    <li>Item Details</li>
+                  </ul>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCsvDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={exportCsv} disabled={csvExportLoading || !csvEmail}>
+                  {csvExportLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send CSV
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Upload Tracking Dialog */}
+          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Tracking
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Upload Tracking Numbers</DialogTitle>
+                <DialogDescription>
+                  Upload CSV file with tracking numbers to update Square orders
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="tracking-file">CSV File</Label>
+                  <Input
+                    id="tracking-file"
+                    type="file"
+                    accept=".csv"
+                    onChange={handleTrackingFileUpload}
+                  />
+                  {trackingFile && (
+                    <p className="text-sm text-green-600 mt-1">
+                      Selected: {trackingFile.name}
+                    </p>
+                  )}
+                </div>
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    CSV must contain columns: "Order Number" and "Tracking Number"
+                  </AlertDescription>
+                </Alert>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={uploadTrackingCsv} 
+                  disabled={trackingUploadLoading || !trackingFile}
+                >
+                  {trackingUploadLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Tracking
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Button onClick={fetchOrders} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh Orders

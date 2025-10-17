@@ -388,5 +388,35 @@ export const api = {
     });
     if (!res.ok) throw new Error(`Cleanup duplicates failed: ${res.status}`);
     return res.json();
+  },
+
+  // Fulfillment CSV Export
+  async sendFulfillmentCsv(email: string, csvContent: string, saveEmail: boolean) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
+    const res = await fetch(`${BASE_URL}/fulfillment/send-csv`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, csvContent, saveEmail }),
+    });
+    if (!res.ok) throw new Error(`CSV email send failed: ${res.status}`);
+    return res.json();
+  },
+
+  // Square Order Tracking Updates
+  async updateSquareOrderTracking(trackingUpdates: { [orderNumber: string]: string }) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
+    const res = await fetch(`${BASE_URL}/square/update-tracking`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ trackingUpdates }),
+    });
+    if (!res.ok) throw new Error(`Square tracking update failed: ${res.status}`);
+    return res.json();
   }
 };
