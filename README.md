@@ -2,7 +2,7 @@
 
 ## Overview
 
-A comprehensive SaaS platform for wine clubs integrated with Square API. This platform enables wine club owners to manage wine club membership and member shipments inclunding plans, customer tasted preferences, shipment wine 
+A comprehensive SaaS platform for wine clubs integrated with Square API. This platform enables wine club owners to manage wine club membership and member shipments inclunding plans, customer tasted preferences, shipment wine seletion by clubs, confirmation by members and a shippin report for a shiiping vendor. 
 
 ## Architecture
 
@@ -14,7 +14,9 @@ A comprehensive SaaS platform for wine clubs integrated with Square API. This pl
 - **Email Service**: Resend
 - **Deployment**: Vercel
 
-## Project Structure
+## Starting Project Structure. 
+
+Repo maybe different due to changes and growth. 
 
 ```
 wine-club-saas-current/
@@ -42,12 +44,12 @@ wine-club-saas-current/
 ### Wine Club Management
 - **Multi-tenant SaaS architecture** - Each wine club has isolated data
 - **Square API integration** - Real-time inventory, customers, payments
-- **Member management** - Signup, preferences, payment methods
+- **Member management** - Signup, plan selection, wine preference selection,  payment methods, payments, shipping cofirmation.
 - **Plan management** - Flexible subscription plans with Square groups
-- **Shipment builder** - Create custom wine selections
-- **Customer portal** - Self-service wine selection and preferences
+- **Shipment builder** - Wines are assign to customer preferences that are groups of wine  based on taste preferences. A shipment are the wines assigned to taste preferences based on plan quantity and then assigned a shipment date. Customers are emailed a link for confirmation and then can confirm their plans selection, swap wines and delay shipping up to two weeks. Customers are charged once they confirm. Some customers have a set selection of wines they receive every month as all clubs are monthly.
+- **Customer portal** - Widget embed inside a square store allowing for wine club sign up plan selection, wine preference selection, storing payment methods and choosing frequency. Customers cna login and see past shipments, change preferences or are signed in if logged into square 
 
-### Admin Dashboard
+### Portal Dashboard
 - **Real-time metrics** - Member counts, plan distribution, inventory
 - **Club setup wizard** - Multi-step configuration process
 - **Square configuration** - API credentials and category selection
@@ -60,6 +62,7 @@ wine-club-saas-current/
 - **Delivery scheduling** - Flexible delivery date selection
 - **Payment processing** - Square Web Payments integration
 - **Email notifications** - Resend-powered transactional emails
+for wine selection and receipts.
 
 ## Getting Started
 
@@ -105,8 +108,9 @@ wine-club-saas-current/
 
 ### Configuration
 - Square Location ID and Access Token stored per wine club
-- Customer segments created for each subscription plan
+- Customer groups made in Square when a plan is created in teh portal 
 - Payment methods stored in Square customer profiles
+- Payments stored in Square for each wine shipment.
 
 ## SaaS Architecture
 
@@ -114,13 +118,14 @@ wine-club-saas-current/
 - Each wine club has isolated data in Supabase
 - Square credentials stored per wine club
 - Global preferences and plans scoped to wine club
+- Custom preferences are customers who have specific wines they want each time.
 - Member data associated with specific wine club
 
 ### Data Flow
-1. **Wine Club Setup** → Square credentials → Category selection
+1. **Wine Club Setup** → Square credentials → Club Setup Wizard
 2. **Member Signup** → Square customer creation → Plan assignment
-3. **Shipment Creation** → Wine selection → Square order creation
-4. **Payment Processing** → Square payment → Database record
+3. **Shipment Creation** → Wine assignments to preferences (auto draft, then manual editing), audit members and their plans. 
+4. **Payment Processing** → Payment methods and payment records stored in stripe.
 
 ## Development
 
