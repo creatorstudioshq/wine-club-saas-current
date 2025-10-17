@@ -29,8 +29,11 @@ export function ClientProvider({ children }: { children: ReactNode }) {
       email: "admin@kingfrosch.com"
     };
     
-    setCurrentWineClub(defaultClub);
-    setIsLoading(false);
+    // Use setTimeout to avoid synchronous setState in effect
+    setTimeout(() => {
+      setCurrentWineClub(defaultClub);
+      setIsLoading(false);
+    }, 0);
   }, []);
 
   return (

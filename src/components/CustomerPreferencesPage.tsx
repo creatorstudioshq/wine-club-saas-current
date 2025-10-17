@@ -139,7 +139,7 @@ export function CustomerPreferencesPage() {
       }
       
       // TODO: Load Square customers
-      // const customersRes = await api.getSquareCustomers(KING_FROSCH_ID);
+      // const customersRes = await api.getSquareCustomers(currentWineClub.id);
       // setSquareCustomers(customersRes.customers || []);
       
     } catch (error) {
@@ -164,7 +164,7 @@ export function CustomerPreferencesPage() {
   const handleCreateGlobalPreference = async () => {
     try {
       const preferenceData = {
-        wine_club_id: KING_FROSCH_ID,
+        wine_club_id: currentWineClub.id,
         name: newGlobalPreference.name!,
         description: newGlobalPreference.description!,
         categories: newGlobalPreference.categories || []
@@ -225,7 +225,7 @@ export function CustomerPreferencesPage() {
   const handleCreateCustomerAssignment = async () => {
     try {
       const assignmentData = {
-        wine_club_id: KING_FROSCH_ID,
+        wine_club_id: currentWineClub.id,
         customer_id: newAssignment.customer_id!,
         customer_name: newAssignment.customer_name!,
         customer_email: newAssignment.customer_email!,

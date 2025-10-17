@@ -7,7 +7,7 @@ import { Skeleton } from "./ui/skeleton";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { CreditCard, Search, Plus, Eye, DollarSign, Calendar, AlertCircle, CheckCircle } from "lucide-react";
-import { api } from "../utils/api";
+// import { api } from "../utils/api"; // TODO: Implement real billing API
 
 interface BillingPlan {
   id: string;

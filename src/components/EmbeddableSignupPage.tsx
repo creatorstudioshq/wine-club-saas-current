@@ -116,7 +116,10 @@ export function EmbeddableSignupPage() {
   };
 
   useEffect(() => {
-    generateEmbedCode();
+    // Use setTimeout to avoid synchronous setState in effect
+    setTimeout(() => {
+      generateEmbedCode();
+    }, 0);
   }, [embedConfig.wineClubId, embedConfig.clubName, embedConfig.clubLogo, embedConfig.primaryColor, embedConfig.backgroundColor, embedConfig.textColor, embedConfig.apiBaseUrl]);
 
   return (

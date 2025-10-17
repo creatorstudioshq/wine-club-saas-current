@@ -9,6 +9,9 @@ import { serverEnv } from "./env.tsx";
 
 const app = new Hono();
 
+// Default wine club ID for development
+const KING_FROSCH_ID = '550e8400-e29b-41d4-a716-446655440000';
+
 // Initialize Supabase client
 const supabase = createClient(
   serverEnv.SUPABASE_URL,

@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useState } from "react";
 import { Card, CardContent, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
@@ -367,7 +368,7 @@ export function EmbeddableSignup({
           </div>
         );
 
-      case 3:
+      case 3: {
         const selectedPlanData = SAMPLE_PLANS.find(p => p.id === selectedPlan);
         return (
           <div className="space-y-6">
@@ -478,6 +479,7 @@ export function EmbeddableSignup({
             )}
           </div>
         );
+      }
 
       default:
         return null;

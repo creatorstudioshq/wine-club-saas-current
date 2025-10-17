@@ -3,7 +3,7 @@ import {
   Home, 
   Building2, 
   Users, 
-  Package, 
+  CreditCard, 
   Settings,
   Shield,
   ChevronDown

@@ -7,7 +7,7 @@ import { Skeleton } from "./ui/skeleton";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Package, Search, Plus, Eye, Edit, Truck, Calendar, MapPin } from "lucide-react";
-import { api } from "../utils/api";
+// import { api } from "../utils/api"; // TODO: Implement shipment profiles API
 
 interface ShipmentProfile {
   id: string;
