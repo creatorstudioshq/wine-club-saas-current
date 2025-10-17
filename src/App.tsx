@@ -9,6 +9,9 @@ import { CustomerPreferencesPage } from "./components/CustomerPreferencesPage";
 import { ShipmentBuilderPage } from "./components/ShipmentBuilderPage";
 import { SquareConfigPage } from "./components/SquareConfigPage";
 import { SuperadminDashboard } from "./components/SuperadminDashboard";
+import { ClubsOrganizationsPage } from "./components/ClubsOrganizationsPage";
+import { ClubsUsersPage } from "./components/ClubsUsersPage";
+import { ClubsShipmentProfilesPage } from "./components/ClubsShipmentProfilesPage";
 import { MarketingIntegration } from "./components/MarketingIntegration";
 import { ShippingSchedulePage } from "./components/ShippingSchedulePage";
 import { EmbeddableSignupPage } from "./components/EmbeddableSignupPage";
@@ -23,8 +26,9 @@ import { Toaster } from "./components/ui/sonner";
 import { api } from "./utils/api";
 
 type AdminPage = "dashboard" | "members" | "inventory" | "plans" | "preferences" | "shipments" | "square-config" | "superadmin" | "marketing" | "shipping-schedule" | "embeddable-signup";
+type SuperadminPage = "superadmin-dashboard" | "clubs-organizations" | "clubs-users" | "clubs-shipment-profiles" | "system-settings";
 type CustomerStep = "wine-selection" | "upsell" | "delivery" | "payment" | "preferences" | "payment-collection";
-type AppMode = "admin" | "customer" | "auth" | "signup";
+type AppMode = "admin" | "superadmin" | "customer" | "auth" | "signup";
 
 export default function App() {
   return (
@@ -37,6 +41,7 @@ export default function App() {
 function AppContent() {
   const [appMode, setAppMode] = useState<AppMode>("auth");
   const [currentPage, setCurrentPage] = useState<AdminPage>("dashboard");
+  const [currentSuperadminPage, setCurrentSuperadminPage] = useState<SuperadminPage>("superadmin-dashboard");
   const [customerStep, setCustomerStep] = useState<CustomerStep>("wine-selection");
   const [isDemoMode, setIsDemoMode] = useState<boolean | null>(null);
   const [isCheckingDemoMode, setIsCheckingDemoMode] = useState(false);
@@ -161,6 +166,30 @@ function AppContent() {
     return () => clearTimeout(timer);
   }, []);
 
+  const renderSuperadminPage = () => {
+    switch (currentSuperadminPage) {
+      case "superadmin-dashboard":
+        return <SuperadminDashboard />;
+      case "clubs-organizations":
+        return <ClubsOrganizationsPage />;
+      case "clubs-users":
+        return <ClubsUsersPage />;
+      case "clubs-shipment-profiles":
+        return <ClubsShipmentProfilesPage />;
+      case "system-settings":
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-serif text-gray-900 mb-4">System Settings</h2>
+              <p className="text-gray-600 mb-6">Platform configuration and settings</p>
+            </div>
+          </div>
+        );
+      default:
+        return <SuperadminDashboard />;
+    }
+  };
+
   const renderAdminPage = () => {
     switch (currentPage) {
       case "dashboard":
@@ -178,6 +207,8 @@ function AppContent() {
       case "square-config":
         return <SquareConfigPage />;
       case "superadmin":
+        // Switch to superadmin mode
+        setAppMode("superadmin");
         return <SuperadminDashboard />;
       case "marketing":
         return <MarketingIntegration />;
@@ -300,44 +331,78 @@ function AppContent() {
   }
 
   // Admin portal (authenticated)
+  if (appMode === "admin") {
+    return (
+      <>
+        <Toaster position="top-right" />
+        {isDemoMode && (
+          <div className="bg-red-50 border-b-2 border-red-300 px-4 py-3">
+            <div className="flex items-center justify-between max-w-6xl mx-auto">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 bg-red-100 rounded-full p-2">
+                  <span className="text-xl">⚠️</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-red-900">
+                    Square API Authentication Error (401)
+                  </p>
+                  <p className="text-xs text-red-700">
+                    Your Square access token is missing or invalid. Click below to fix it in 2 minutes.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handlePageChange('square-diagnostic')}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Fix Authentication →
+                </button>
+                <button 
+                  onClick={refreshDemoMode}
+                  disabled={isCheckingDemoMode}
+                  className="text-xs text-red-700 hover:text-red-900 underline disabled:opacity-50 px-2"
+                >
+                  {isCheckingDemoMode ? 'Checking...' : 'Refresh'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        <AdminLayout currentPage={currentPage} onPageChange={handlePageChange} onLogout={handleLogout}>
+          {renderAdminPage()}
+        </AdminLayout>
+      </>
+    );
+  }
+
+  // Superadmin portal
+  if (appMode === "superadmin") {
+    return (
+      <>
+        <Toaster position="top-right" />
+        <SuperadminLayout 
+          currentPage={currentSuperadminPage} 
+          onPageChange={(page) => {
+            if (page === "dashboard") {
+              setAppMode("admin");
+            } else {
+              setCurrentSuperadminPage(page as SuperadminPage);
+            }
+          }} 
+          onLogout={handleLogout}
+        >
+          {renderSuperadminPage()}
+        </SuperadminLayout>
+      </>
+    );
+  }
+
+  // Default fallback
   return (
     <>
       <Toaster position="top-right" />
-      {isDemoMode && (
-        <div className="bg-red-50 border-b-2 border-red-300 px-4 py-3">
-          <div className="flex items-center justify-between max-w-6xl mx-auto">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 bg-red-100 rounded-full p-2">
-                <span className="text-xl">⚠️</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-red-900">
-                  Square API Authentication Error (401)
-                </p>
-                <p className="text-xs text-red-700">
-                  Your Square access token is missing or invalid. Click below to fix it in 2 minutes.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => handlePageChange('square-diagnostic')}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                Fix Authentication →
-              </button>
-              <button 
-                onClick={refreshDemoMode}
-                disabled={isCheckingDemoMode}
-                className="text-xs text-red-700 hover:text-red-900 underline disabled:opacity-50 px-2"
-              >
-                {isCheckingDemoMode ? 'Checking...' : 'Refresh'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      <AdminLayout currentPage={currentPage} onPageChange={handlePageChange}>
+      <AdminLayout currentPage={currentPage} onPageChange={handlePageChange} onLogout={handleLogout}>
         {renderAdminPage()}
       </AdminLayout>
     </>
