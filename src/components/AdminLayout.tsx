@@ -32,6 +32,7 @@ const navigation = [
   { name: "Dashboard", icon: Home, id: "dashboard" },
   { name: "Members", icon: Users, id: "members" },
   { name: "Shipments", icon: Truck, id: "shipments" },
+  { name: "Fulfillment", icon: Package, id: "fulfillment" },
   { name: "Marketing", icon: Mail, id: "marketing" },
   { name: "Club Setup", icon: Settings, id: "square-config" },
   { name: "Shipping Schedule", icon: Calendar, id: "shipping-schedule" },

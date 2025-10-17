@@ -7,6 +7,7 @@ import { PlansPage } from "./components/PlansPage";
 import { CustomerPreferencesPage } from "./components/CustomerPreferencesPage";
 import { ShipmentBuilderPage } from "./components/ShipmentBuilderPage";
 import { SquareConfigPage } from "./components/SquareConfigPage";
+import { FulfillmentPage } from "./components/FulfillmentPage";
 import { SuperadminDashboard } from "./components/SuperadminDashboard";
 import { SuperadminLayout } from "./components/SuperadminLayout";
 import { OrganizationsPage } from "./components/ClubsOrganizationsPage";
@@ -25,7 +26,7 @@ import { WelcomeToast } from "./components/WelcomeToast";
 import { Toaster } from "./components/ui/sonner";
 import { api } from "./utils/api";
 
-type AdminPage = "dashboard" | "members" | "shipments" | "square-config" | "superadmin" | "marketing" | "shipping-schedule" | "embeddable-signup";
+type AdminPage = "dashboard" | "members" | "shipments" | "fulfillment" | "square-config" | "superadmin" | "marketing" | "shipping-schedule" | "embeddable-signup";
 type SuperadminPage = "saas-dashboard" | "organizations" | "users" | "billing" | "settings";
 type CustomerStep = "wine-selection" | "upsell" | "delivery" | "payment" | "preferences" | "payment-collection";
 type AppMode = "admin" | "superadmin" | "customer" | "auth" | "signup";
@@ -219,6 +220,8 @@ function AppContent() {
         return <MembersPage />;
       case "shipments":
         return <ShipmentBuilderPage />;
+      case "fulfillment":
+        return <FulfillmentPage />;
       case "square-config":
         return <SquareConfigPage />;
       case "superadmin":
