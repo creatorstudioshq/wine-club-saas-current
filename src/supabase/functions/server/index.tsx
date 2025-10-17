@@ -9,8 +9,8 @@ import { serverEnv } from "./env.tsx";
 
 const app = new Hono();
 
-// Default wine club ID for development
-const KING_FROSCH_ID = '550e8400-e29b-41d4-a716-446655440000';
+// Default wine club ID for development (wine club client #1)
+const DEFAULT_WINE_CLUB_ID = '1';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -266,7 +266,7 @@ app.delete("/make-server-9d538b9c/plans/:planId", async (c) => {
 // Cleanup duplicate plans for King Frosch
 app.post("/make-server-9d538b9c/plans/cleanup-duplicates", async (c) => {
   try {
-    const wineClubId = c.req.query('wine_club_id') || KING_FROSCH_ID;
+    const wineClubId = c.req.query('wine_club_id') || DEFAULT_WINE_CLUB_ID;
     
     // Get all plans for this wine club
     const { data: plans, error: fetchError } = await supabase
@@ -600,7 +600,7 @@ import {
 // List all customers (for importing to wine club)
 app.get("/make-server-9d538b9c/square/customers", async (c) => {
   try {
-    const wineClubId = c.req.query('wine_club_id') || KING_FROSCH_ID;
+    const wineClubId = c.req.query('wine_club_id') || DEFAULT_WINE_CLUB_ID;
     const result = await squareHelpers.listCustomers(wineClubId);
     return c.json(result);
   } catch (error) {
@@ -711,7 +711,7 @@ app.get("/make-server-9d538b9c/square/segments", async (c) => {
 app.post("/make-server-9d538b9c/square/segments", async (c) => {
   try {
     const { segmentName, description, wine_club_id } = await c.req.json();
-    const wineClubId = wine_club_id || KING_FROSCH_ID;
+    const wineClubId = wine_club_id || DEFAULT_WINE_CLUB_ID;
     
     const result = await squareHelpers.createCustomerSegment(wineClubId, segmentName, description);
     if (!result.success) {
@@ -734,7 +734,7 @@ app.post("/make-server-9d538b9c/square/segments/:segmentId/customers", async (c)
   try {
     const segmentId = c.req.param('segmentId');
     const { customerId, wine_club_id } = await c.req.json();
-    const wineClubId = wine_club_id || KING_FROSCH_ID;
+    const wineClubId = wine_club_id || DEFAULT_WINE_CLUB_ID;
     
     const result = await squareHelpers.addCustomerToSegment(wineClubId, customerId, segmentId);
     if (!result.success) {
@@ -757,7 +757,7 @@ app.delete("/make-server-9d538b9c/square/segments/:segmentId/customers/:customer
   try {
     const segmentId = c.req.param('segmentId');
     const customerId = c.req.param('customerId');
-    const wineClubId = c.req.query('wine_club_id') || KING_FROSCH_ID;
+    const wineClubId = c.req.query('wine_club_id') || DEFAULT_WINE_CLUB_ID;
     
     const result = await squareHelpers.removeCustomerFromSegment(wineClubId, customerId, segmentId);
     if (!result.success) {
@@ -779,7 +779,7 @@ app.delete("/make-server-9d538b9c/square/segments/:segmentId/customers/:customer
 app.get("/make-server-9d538b9c/square/segments/:segmentId/customers", async (c) => {
   try {
     const segmentId = c.req.param('segmentId');
-    const wineClubId = c.req.query('wine_club_id') || KING_FROSCH_ID;
+    const wineClubId = c.req.query('wine_club_id') || DEFAULT_WINE_CLUB_ID;
     
     const result = await squareHelpers.getCustomersInSegment(wineClubId, segmentId);
     if (!result.success) {

@@ -152,15 +152,15 @@ CREATE INDEX IF NOT EXISTS idx_member_selections_member_id ON member_selections(
 
 // Insert sample data for King Frosch
 export const sampleData = `
--- Insert King Frosch Wine Club
+-- Insert Wine Club Client #1 (King Frosch)
 INSERT INTO wine_clubs (id, name, email) VALUES 
-('550e8400-e29b-41d4-a716-446655440000', 'King Frosch Wine Club', 'admin@kingfrosch.com')
+('1', 'King Frosch Wine Club', 'admin@kingfrosch.com')
 ON CONFLICT (id) DO NOTHING;
 
--- Insert Subscription Plans
+-- Insert Subscription Plans for Wine Club #1
 INSERT INTO subscription_plans (wine_club_id, name, bottle_count, frequency, discount_percentage) VALUES
-('550e8400-e29b-41d4-a716-446655440000', 'Gold', 3, 'monthly', 10.00),
-('550e8400-e29b-41d4-a716-446655440000', 'Silver', 6, 'monthly', 15.00),
-('550e8400-e29b-41d4-a716-446655440000', 'Platinum', 12, 'monthly', 20.00)
+('1', 'Gold', 3, 'monthly', 10.00),
+('1', 'Silver', 6, 'monthly', 15.00),
+('1', 'Platinum', 12, 'monthly', 20.00)
 ON CONFLICT DO NOTHING;
 `;

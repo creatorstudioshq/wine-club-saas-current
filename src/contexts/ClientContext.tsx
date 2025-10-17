@@ -21,10 +21,10 @@ export function ClientProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // For now, default to King Frosch for development
-    // In production, this would come from authentication
+    // For now, default to wine club #1 for development
+    // In production, this would come from authentication/user session
     const defaultClub: WineClub = {
-      id: "550e8400-e29b-41d4-a716-446655440000",
+      id: "1", // Wine club client #1
       name: "King Frosch Wine Club",
       email: "admin@kingfrosch.com"
     };

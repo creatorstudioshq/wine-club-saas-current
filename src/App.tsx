@@ -138,7 +138,7 @@ function AppContent() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
       
-      const response = await api.getLiveInventory("550e8400-e29b-41d4-a716-446655440000", 'all', 1);
+      const response = await api.getLiveInventory("1", 'all', 1);
       clearTimeout(timeoutId);
       setIsDemoMode(!!response.isDemoMode);
     } catch (error: any) {
@@ -157,7 +157,7 @@ function AppContent() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
         
-        const response = await api.getLiveInventory("550e8400-e29b-41d4-a716-446655440000", 'all', 1);
+        const response = await api.getLiveInventory("1", 'all', 1);
         clearTimeout(timeoutId);
         setIsDemoMode(!!response.isDemoMode);
       } catch (error: any) {
@@ -319,7 +319,7 @@ function AppContent() {
               ← Back to Login
             </button>
           </div>
-          <EmbeddedSignup onSignup={handleSignup} wineClubId="550e8400-e29b-41d4-a716-446655440000" />
+          <EmbeddedSignup onSignup={handleSignup} wineClubId="1" />
         </div>
       </>
     );

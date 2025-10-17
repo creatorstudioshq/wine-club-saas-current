@@ -13,7 +13,7 @@ export const clientEnv = {
     : 'http://localhost:3000',
     
   // Wine Club ID (constant)
-  KING_FROSCH_WINE_CLUB_ID: '550e8400-e29b-41d4-a716-446655440000',
+  DEFAULT_WINE_CLUB_ID: '1',
 };
 
 // Client-side deployment detection

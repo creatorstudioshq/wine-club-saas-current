@@ -15,7 +15,7 @@ export const serverEnv = {
   SQUARE_WEBHOOK_SIGNATURE_KEY: Deno.env.get("SQUARE_WEBHOOK_SIGNATURE_KEY") || '',
 
   // Wine Club
-  KING_FROSCH_WINE_CLUB_ID: Deno.env.get("KING_FROSCH_WINE_CLUB_ID") || '550e8400-e29b-41d4-a716-446655440000',
+  DEFAULT_WINE_CLUB_ID: Deno.env.get("DEFAULT_WINE_CLUB_ID") || '1',
 
   // Optional: Email/SMS
   SENDGRID_API_KEY: Deno.env.get("SENDGRID_API_KEY") || '',
