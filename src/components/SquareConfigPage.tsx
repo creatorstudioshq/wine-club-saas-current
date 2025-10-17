@@ -711,17 +711,25 @@ export function SquareConfigPage() {
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 max-h-96 overflow-y-auto">
                       {availableWines.map((wine) => (
                         <div 
                           key={wine.square_item_id} 
-                          className={`border rounded-lg p-3 transition-colors ${
+                          className={`border rounded-lg p-3 transition-colors max-h-[250px] ${
                             excludedWines.includes(wine.square_item_id) 
                               ? 'bg-red-50 border-red-200' 
                               : 'bg-green-50 border-green-200'
                           }`}
                         >
-                          <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-3">
+                            {/* Wine Image */}
+                            <div className="flex-shrink-0">
+                              <div className="w-12 h-16 bg-gray-100 rounded border flex items-center justify-center">
+                                <Wine className="w-6 h-6 text-gray-400" />
+                              </div>
+                            </div>
+                            
+                            {/* Wine Details */}
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-sm truncate">{wine.name}</h4>
                               <p className="text-xs text-muted-foreground mt-1">
@@ -739,11 +747,15 @@ export function SquareConfigPage() {
                                 </Badge>
                               </div>
                             </div>
-                            <Checkbox
-                              checked={excludedWines.includes(wine.square_item_id)}
-                              onCheckedChange={() => toggleWineExclusion(wine.square_item_id)}
-                              className="ml-2"
-                            />
+                            
+                            {/* Exclusion Checkbox */}
+                            <div className="flex-shrink-0">
+                              <Checkbox
+                                checked={excludedWines.includes(wine.square_item_id)}
+                                onCheckedChange={() => toggleWineExclusion(wine.square_item_id)}
+                                className="ml-2"
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -784,76 +796,183 @@ export function SquareConfigPage() {
               <CardHeader>
                 <CardTitle>Shipping Zones & Rates</CardTitle>
                 <CardDescription>
-                  Configure shipping zones and USPS rates from your location (92677).
+                  Configure shipping zones and USPS rates from Alameda, CA (94501).
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* USPS Ground Advantage */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Zone 1 - Local Bay Area */}
                   <div className="border rounded-lg p-4">
-                    <h4 className="font-medium mb-2">USPS Ground Advantage</h4>
+                    <h4 className="font-medium mb-2">Zone 1 - Local Bay Area</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span>Local (92677 area):</span>
+                        <span>Ground Advantage:</span>
                         <span className="font-medium">$8.95</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>California:</span>
+                        <span>Priority Mail:</span>
                         <span className="font-medium">$12.95</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>West Coast:</span>
-                        <span className="font-medium">$15.95</span>
+                        <span>Express:</span>
+                        <span className="font-medium">$25.95</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>East Coast:</span>
-                        <span className="font-medium">$18.95</span>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Alameda, Oakland, San Francisco, San Jose
                       </div>
                     </div>
                   </div>
 
-                  {/* USPS Priority Mail */}
+                  {/* Zone 2 - California */}
                   <div className="border rounded-lg p-4">
-                    <h4 className="font-medium mb-2">USPS Priority Mail</h4>
+                    <h4 className="font-medium mb-2">Zone 2 - California</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span>Local (92677 area):</span>
+                        <span>Ground Advantage:</span>
                         <span className="font-medium">$12.95</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>California:</span>
+                        <span>Priority Mail:</span>
                         <span className="font-medium">$16.95</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>West Coast:</span>
-                        <span className="font-medium">$19.95</span>
+                        <span>Express:</span>
+                        <span className="font-medium">$29.95</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>East Coast:</span>
-                        <span className="font-medium">$22.95</span>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Los Angeles, San Diego, Sacramento
                       </div>
                     </div>
                   </div>
 
-                  {/* USPS Express */}
+                  {/* Zone 3 - West Coast */}
                   <div className="border rounded-lg p-4">
-                    <h4 className="font-medium mb-2">USPS Express</h4>
+                    <h4 className="font-medium mb-2">Zone 3 - West Coast</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span>Local (92677 area):</span>
+                        <span>Ground Advantage:</span>
+                        <span className="font-medium">$15.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Priority Mail:</span>
+                        <span className="font-medium">$19.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Express:</span>
+                        <span className="font-medium">$32.95</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Oregon, Washington, Nevada
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Zone 4 - Mountain */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Zone 4 - Mountain</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Ground Advantage:</span>
+                        <span className="font-medium">$18.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Priority Mail:</span>
+                        <span className="font-medium">$22.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Express:</span>
+                        <span className="font-medium">$35.95</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Colorado, Utah, Arizona, New Mexico
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Zone 5 - Central */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Zone 5 - Central</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Ground Advantage:</span>
+                        <span className="font-medium">$21.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Priority Mail:</span>
                         <span className="font-medium">$25.95</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>California:</span>
-                        <span className="font-medium">$29.95</span>
+                        <span>Express:</span>
+                        <span className="font-medium">$38.95</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Texas, Oklahoma, Kansas, Missouri
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Zone 6 - Midwest */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Zone 6 - Midwest</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Ground Advantage:</span>
+                        <span className="font-medium">$24.95</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>West Coast:</span>
-                        <span className="font-medium">$32.95</span>
+                        <span>Priority Mail:</span>
+                        <span className="font-medium">$28.95</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>East Coast:</span>
-                        <span className="font-medium">$35.95</span>
+                        <span>Express:</span>
+                        <span className="font-medium">$41.95</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Illinois, Ohio, Michigan, Wisconsin
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Zone 7 - Northeast */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Zone 7 - Northeast</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Ground Advantage:</span>
+                        <span className="font-medium">$27.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Priority Mail:</span>
+                        <span className="font-medium">$31.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Express:</span>
+                        <span className="font-medium">$44.95</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        New York, Pennsylvania, New Jersey
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Zone 8 - Southeast */}
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Zone 8 - Southeast</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Ground Advantage:</span>
+                        <span className="font-medium">$30.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Priority Mail:</span>
+                        <span className="font-medium">$34.95</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Express:</span>
+                        <span className="font-medium">$47.95</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Florida, Georgia, North Carolina
                       </div>
                     </div>
                   </div>
@@ -862,7 +981,7 @@ export function SquareConfigPage() {
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <h4 className="font-medium text-blue-900 mb-2">Shipping Zone Configuration</h4>
                   <p className="text-sm text-blue-800">
-                    These rates are based on USPS pricing from ZIP code 92677 (Orange County, CA). 
+                    These rates are based on USPS pricing from ZIP code 94501 (Alameda, CA). 
                     Rates may vary based on package weight and dimensions. Contact your shipping provider 
                     for exact pricing and to set up automated rate calculation.
                   </p>

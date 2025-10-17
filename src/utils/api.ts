@@ -1,30 +1,268 @@
-import { projectId, publicAnonKey } from './supabase/info';
+import { createClient } from '@supabase/supabase-js';
 
-const BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-9d538b9c`;
+const supabaseUrl = 'https://aammkgdhfmkukpqkdduj.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbW1rZ2RoZm1rdWtwcWtkZHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MzgxNTIsImV4cCI6MjA3NTAxNDE1Mn0.V-9vkcctLQ8flXrdc50c3ghIHhxnNGsKl6HfvXHzlY8';
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const api = {
-  // Environment & Health
-  async getEnvironmentStatus() {
-    const res = await fetch(`${BASE_URL}/env-status`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Environment status check failed: ${res.status}`);
-    return res.json();
+  // Wine Clubs
+  async getWineClubs() {
+    const { data, error } = await supabase
+      .from('wine_clubs')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
   },
 
-  // Square Live Inventory (real-time from Square Production API)
+  async getWineClub(id: string) {
+    const { data, error } = await supabase
+      .from('wine_clubs')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updateWineClub(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('wine_clubs')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Subscription Plans
+  async getPlans(wineClubId: string) {
+    const { data, error } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .eq('wine_club_id', wineClubId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async createPlan(planData: any) {
+    const { data, error } = await supabase
+      .from('subscription_plans')
+      .insert(planData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updatePlan(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('subscription_plans')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePlan(id: string) {
+    const { error } = await supabase
+      .from('subscription_plans')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return { success: true };
+  },
+
+  // Members
+  async getMembers(wineClubId: string) {
+    const { data, error } = await supabase
+      .from('members')
+      .select('*')
+      .eq('wine_club_id', wineClubId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async createMember(memberData: any) {
+    const { data, error } = await supabase
+      .from('members')
+      .insert(memberData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updateMember(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('members')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteMember(id: string) {
+    const { error } = await supabase
+      .from('members')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return { success: true };
+  },
+
+  // Square Configuration (stored in wine_clubs table)
+  async getSquareConfig(wineClubId: string) {
+    const { data, error } = await supabase
+      .from('wine_clubs')
+      .select('square_location_id, square_access_token')
+      .eq('id', wineClubId)
+      .single();
+    
+    if (error) throw error;
+    return {
+      wine_club_id: wineClubId,
+      square_location_id: data?.square_location_id || '',
+      square_access_token: data?.square_access_token || ''
+    };
+  },
+
+  async saveSquareConfig(configData: any) {
+    const { wine_club_id, square_location_id, square_access_token, selected_categories } = configData;
+    
+    const { data, error } = await supabase
+      .from('wine_clubs')
+      .update({
+        square_location_id,
+        square_access_token,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', wine_club_id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return {
+      success: true,
+      message: "Square configuration saved successfully",
+      config: {
+        wine_club_id,
+        square_location_id,
+        square_access_token: square_access_token ? '***' + square_access_token.slice(-4) : null,
+        selected_categories: selected_categories || [],
+        updated_at: new Date().toISOString()
+      }
+    };
+  },
+
+  // Global Preferences (stored in KV-like structure using JSONB)
+  async getGlobalPreferences(wineClubId: string) {
+    // For now, return empty array - we'll implement this later
+    return [];
+  },
+
+  async createGlobalPreference(preferenceData: any) {
+    // For now, return mock data - we'll implement this later
+    return {
+      id: `pref_${Date.now()}`,
+      ...preferenceData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+  },
+
+  async updateGlobalPreference(id: string, updates: any) {
+    // For now, return mock data - we'll implement this later
+    return {
+      id,
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+  },
+
+  async deleteGlobalPreference(id: string) {
+    // For now, return success - we'll implement this later
+    return { success: true };
+  },
+
+  // Custom Preferences
+  async getCustomPreferences(wineClubId: string) {
+    const { data, error } = await supabase
+      .from('custom_preferences')
+      .select('*')
+      .eq('wine_club_id', wineClubId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async createCustomPreference(preferenceData: any) {
+    const { data, error } = await supabase
+      .from('custom_preferences')
+      .insert(preferenceData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updateCustomPreference(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('custom_preferences')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteCustomPreference(id: string) {
+    const { error } = await supabase
+      .from('custom_preferences')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return { success: true };
+  },
+
+  // Square Live Inventory (still use Edge Function for this complex operation)
   async getLiveInventory(
     wineClubId: string,
     category: string = 'all',
     limit: number = 100
   ) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
     const params = new URLSearchParams({
       category,
       limit: String(limit),
     });
 
     const res = await fetch(`${BASE_URL}/square/live-inventory/${wineClubId}?${params}`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
+      headers: { Authorization: `Bearer ${supabaseAnonKey}` },
     });
 
     if (!res.ok) {
@@ -35,364 +273,120 @@ export const api = {
     return res.json();
   },
 
-  // Members
-  async getMembers(wineClubId: string) {
-    const res = await fetch(`${BASE_URL}/members/${wineClubId}`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Members fetch failed: ${res.status}`);
-    return res.json();
-  },
-
-  async createMember(data: any) {
-    const res = await fetch(`${BASE_URL}/members`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error(`Member creation failed: ${res.status}`);
-    return res.json();
-  },
-
-  async updateMember(memberId: string, data: any) {
-    const res = await fetch(`${BASE_URL}/members/${memberId}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error(`Member update failed: ${res.status}`);
-    return res.json();
-  },
-
-  // Plans
-  async getPlans(wineClubId: string) {
-    const res = await fetch(`${BASE_URL}/plans/${wineClubId}`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Plans fetch failed: ${res.status}`);
-    return res.json();
-  },
-
-  async createPlan(data: any) {
-    const res = await fetch(`${BASE_URL}/plans`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error(`Plan creation failed: ${res.status}`);
-    return res.json();
-  },
-
-  async deletePlan(planId: string) {
-    const res = await fetch(`${BASE_URL}/plans/${planId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Plan deletion failed: ${res.status}`);
-    return res.json();
-  },
-
-  async cleanupDuplicatePlans(wineClubId?: string) {
-    const res = await fetch(`${BASE_URL}/plans/cleanup-duplicates?wine_club_id=${wineClubId}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Plan cleanup failed: ${res.status}`);
-    return res.json();
-  },
-
-  // Shipments
-  async getShipments(wineClubId: string) {
-    const res = await fetch(`${BASE_URL}/shipments/${wineClubId}`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Shipments fetch failed: ${res.status}`);
-    return res.json();
-  },
-
-  async getClubShipments(wineClubId: string) {
-    return this.getShipments(wineClubId);
-  },
-
-  async createClubShipment(data: any) {
-    const res = await fetch(`${BASE_URL}/shipments`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error(`Shipment creation failed: ${res.status}`);
-    return res.json();
-  },
-
-  // Global Preferences
-  async getGlobalPreferences(wineClubId: string) {
-    const res = await fetch(`${BASE_URL}/global-preferences/${wineClubId}`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Global preferences fetch failed: ${res.status}`);
-    return res.json();
-  },
-
-  async createGlobalPreference(data: any) {
-    const res = await fetch(`${BASE_URL}/global-preferences`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error(`Global preference creation failed: ${res.status}`);
-    return res.json();
-  },
-
-  // Customer Assignments
-  async getCustomerAssignments(wineClubId: string) {
-    const res = await fetch(`${BASE_URL}/customer-assignments/${wineClubId}`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Customer assignments fetch failed: ${res.status}`);
-    return res.json();
-  },
-
-  async createCustomerAssignment(data: any) {
-    const res = await fetch(`${BASE_URL}/customer-assignments`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error(`Customer assignment creation failed: ${res.status}`);
-    return res.json();
-  },
-
-  // Legacy Customer Preferences (for backward compatibility)
-  async getCustomerPreferences(wineClubId: string) {
-    const res = await fetch(`${BASE_URL}/preferences/${wineClubId}`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Preferences fetch failed: ${res.status}`);
-    return res.json();
-  },
-
-  async createCustomerPreference(data: any) {
-    const res = await fetch(`${BASE_URL}/preferences`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error(`Preference creation failed: ${res.status}`);
-    return res.json();
-  },
-
-  // Square Customers
-  async getSquareCustomers() {
-    const res = await fetch(`${BASE_URL}/square/customers`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Square customers fetch failed: ${res.status}`);
-    return res.json();
-  },
-
+  // Square Customer Sync (still use Edge Function for this complex operation)
   async syncSquareCustomers(wineClubId: string) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
     const res = await fetch(`${BASE_URL}/square/sync-customers`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
+        Authorization: `Bearer ${supabaseAnonKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ wine_club_id: wineClubId }),
     });
-    if (!res.ok) throw new Error(`Square customers sync failed: ${res.status}`);
+
+    if (!res.ok) throw new Error(`Square customer sync failed: ${res.status}`);
     return res.json();
   },
 
-  async saveSquareConfig(data: any) {
-    const res = await fetch(`${BASE_URL}/square-config`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('Square config save error:', errorText);
-      throw new Error(`Square config save failed: ${res.status} - ${errorText}`);
-    }
-    return res.json();
-  },
-
-  // Shipping Schedule
-  async getShippingSchedule(wineClubId: string) {
-    const res = await fetch(`${BASE_URL}/shipping-schedule/${wineClubId}`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    if (!res.ok) throw new Error(`Shipping schedule fetch failed: ${res.status}`);
-    return res.json();
-  },
-
-  async saveShippingSchedule(data: any) {
-    const res = await fetch(`${BASE_URL}/shipping-schedule`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('Shipping schedule save error:', errorText);
-      throw new Error(`Shipping schedule save failed: ${res.status} - ${errorText}`);
-    }
-    return res.json();
-  },
-
-  // Email Service Functions
-  async sendMagicLink(email: string, wineClubId: string) {
-    const res = await fetch(`${BASE_URL}/email/magic-link`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, wine_club_id: wineClubId }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Magic link send failed: ${res.status} - ${errorText}`);
-    }
-    return res.json();
-  },
-
-  async sendWelcomeEmail(email: string, name: string, wineClubId: string, planName: string) {
-    const res = await fetch(`${BASE_URL}/email/welcome`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, name, wine_club_id: wineClubId, plan_name: planName }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Welcome email send failed: ${res.status} - ${errorText}`);
-    }
-    return res.json();
-  },
-
-  async sendShipmentNotification(email: string, name: string, wineClubId: string, approvalUrl: string, deadline: string) {
-    const res = await fetch(`${BASE_URL}/email/shipment-notification`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, name, wine_club_id: wineClubId, approval_url: approvalUrl, deadline }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Shipment notification send failed: ${res.status} - ${errorText}`);
-    }
-    return res.json();
-  },
-
-  async sendVerificationEmail(email: string, wineClubId: string, verificationUrl: string) {
-    const res = await fetch(`${BASE_URL}/email/verify`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, wine_club_id: wineClubId, verification_url: verificationUrl }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Verification email send failed: ${res.status} - ${errorText}`);
-    }
-    return res.json();
-  },
-
-  // Square Customer Groups (Segments) Functions
-  async getSquareSegments() {
+  // Square Customer Groups (still use Edge Function for this complex operation)
+  async getSquareSegments(wineClubId: string) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
     const res = await fetch(`${BASE_URL}/square/segments`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
+      headers: { Authorization: `Bearer ${supabaseAnonKey}` },
     });
     if (!res.ok) throw new Error(`Square segments fetch failed: ${res.status}`);
     return res.json();
   },
 
-  async createSquareSegment(segmentName: string, description?: string, wineClubId?: string) {
+  async createSquareSegment(segmentData: any) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
     const res = await fetch(`${BASE_URL}/square/segments`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
+        Authorization: `Bearer ${supabaseAnonKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ segmentName, description, wine_club_id: wineClubId }),
+      body: JSON.stringify(segmentData),
     });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Square segment creation failed: ${res.status} - ${errorText}`);
-    }
+    if (!res.ok) throw new Error(`Square segment creation failed: ${res.status}`);
     return res.json();
   },
 
-  async addCustomerToSquareSegment(segmentId: string, customerId: string, wineClubId?: string) {
+  async addCustomerToSquareSegment(segmentId: string, customerId: string) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
     const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
+        Authorization: `Bearer ${supabaseAnonKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ customerId, wine_club_id: wineClubId }),
+      body: JSON.stringify({ customer_id: customerId }),
     });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Add customer to segment failed: ${res.status} - ${errorText}`);
-    }
+    if (!res.ok) throw new Error(`Add customer to segment failed: ${res.status}`);
     return res.json();
   },
 
-  async removeCustomerFromSquareSegment(segmentId: string, customerId: string, wineClubId?: string) {
-    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers/${customerId}?wine_club_id=${wineClubId}`, {
+  async removeCustomerFromSquareSegment(segmentId: string, customerId: string) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
+    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers/${customerId}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
+      headers: { Authorization: `Bearer ${supabaseAnonKey}` },
     });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Remove customer from segment failed: ${res.status} - ${errorText}`);
-    }
+    if (!res.ok) throw new Error(`Remove customer from segment failed: ${res.status}`);
     return res.json();
   },
 
-  async getCustomersInSquareSegment(segmentId: string, wineClubId?: string) {
-    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers?wine_club_id=${wineClubId}`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
+  async getCustomersInSquareSegment(segmentId: string) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
+    const res = await fetch(`${BASE_URL}/square/segments/${segmentId}/customers`, {
+      headers: { Authorization: `Bearer ${supabaseAnonKey}` },
     });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Get customers in segment failed: ${res.status} - ${errorText}`);
-    }
+    if (!res.ok) throw new Error(`Get customers in segment failed: ${res.status}`);
     return res.json();
   },
+
+  // Email Services (still use Edge Function for this complex operation)
+  async sendMagicLink(email: string, wineClubId: string) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
+    const res = await fetch(`${BASE_URL}/email/magic-link`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, wine_club_id: wineClubId }),
+    });
+    if (!res.ok) throw new Error(`Magic link send failed: ${res.status}`);
+    return res.json();
+  },
+
+  async sendWelcomeEmail(email: string, wineClubId: string) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
+    const res = await fetch(`${BASE_URL}/email/welcome`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, wine_club_id: wineClubId }),
+    });
+    if (!res.ok) throw new Error(`Welcome email send failed: ${res.status}`);
+    return res.json();
+  },
+
+  // Cleanup functions
+  async cleanupDuplicatePlans(wineClubId: string) {
+    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
+    const res = await fetch(`${BASE_URL}/plans/cleanup-duplicates`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ wine_club_id: wineClubId }),
+    });
+    if (!res.ok) throw new Error(`Cleanup duplicates failed: ${res.status}`);
+    return res.json();
+  }
 };
