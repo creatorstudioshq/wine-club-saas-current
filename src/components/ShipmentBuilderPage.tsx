@@ -11,21 +11,50 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Textarea } from "./ui/textarea";
 import { Skeleton } from "./ui/skeleton";
-import { CalendarIcon, Wine, Plus, Minus, Eye, Send, RefreshCw, Users, Package, Calendar as CalendarDays, Mail, Check, Clock } from "lucide-react";
+import { Checkbox } from "./ui/checkbox";
+import { Alert, AlertDescription } from "./ui/alert";
+import { CalendarIcon, Wine, Plus, Minus, Eye, Send, RefreshCw, Users, Package, Calendar as CalendarDays, Mail, Check, Clock, Truck, Save } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { api } from "../utils/api";
 import { useClient } from "../contexts/ClientContext";
 import { format } from "date-fns";
 
-interface CustomerPreference {
+interface ShippingSchedule {
   id: string;
-  customer_name: string;
-  customer_email: string;
-  preference_type: 'category_based' | 'custom';
-  category_preferences: { category: string; quantity: number; }[];
-  custom_wine_assignments?: string[];
-  notes?: string;
+  wine_club_id: string;
+  shipping_day_of_week: string; // "wednesday"
+  shipping_week_of_month: number; // 3 (3rd week)
+  advance_notice_days: number; // 14 (2 weeks)
+  available_days: string[]; // ["wednesday"]
+  timezone: string;
+  created_at: string;
+  updated_at: string;
 }
+
+const DAYS_OF_WEEK = [
+  { value: "monday", label: "Monday" },
+  { value: "tuesday", label: "Tuesday" },
+  { value: "wednesday", label: "Wednesday" },
+  { value: "thursday", label: "Thursday" },
+  { value: "friday", label: "Friday" },
+  { value: "saturday", label: "Saturday" },
+  { value: "sunday", label: "Sunday" },
+];
+
+const WEEKS_OF_MONTH = [
+  { value: 1, label: "1st" },
+  { value: 2, label: "2nd" },
+  { value: 3, label: "3rd" },
+  { value: 4, label: "4th" },
+  { value: 5, label: "5th (Last)" },
+];
+
+const TIMEZONES = [
+  { value: "America/New_York", label: "Eastern Time (ET)" },
+  { value: "America/Chicago", label: "Central Time (CT)" },
+  { value: "America/Denver", label: "Mountain Time (MT)" },
+  { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
+];
 
 interface WineAssignment {
   preference_id: string;
