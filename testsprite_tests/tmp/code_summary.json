@@ -1,0 +1,135 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "React",
+    "Vite",
+    "Supabase",
+    "PostgreSQL",
+    "Square API",
+    "Tailwind CSS",
+    "Shadcn/ui",
+    "Vercel"
+  ],
+  "features": [
+    {
+      "name": "Admin Dashboard",
+      "description": "Real-time metrics dashboard for wine club management with member distribution, plan analytics, and revenue tracking",
+      "files": ["src/components/Dashboard.tsx"]
+    },
+    {
+      "name": "Member Management",
+      "description": "Complete member lifecycle management with Square customer sync, plan assignment, and member directory",
+      "files": ["src/components/MembersPage.tsx"]
+    },
+    {
+      "name": "Plan Management",
+      "description": "Subscription plan creation and management with Square customer group integration",
+      "files": ["src/components/PlansPage.tsx"]
+    },
+    {
+      "name": "Club Setup Wizard",
+      "description": "Multi-step wizard for Square integration, preferences, inventory, and shipping configuration",
+      "files": ["src/components/SquareConfigPage.tsx"]
+    },
+    {
+      "name": "Customer Preferences",
+      "description": "Global preferences management and custom shipment builder for member-specific wine assignments",
+      "files": ["src/components/CustomerPreferencesPage.tsx"]
+    },
+    {
+      "name": "Shipment Builder",
+      "description": "Create shipments, assign wines to member preferences, and manage shipping schedules",
+      "files": ["src/components/ShipmentBuilderPage.tsx"]
+    },
+    {
+      "name": "Fulfillment Workflow",
+      "description": "Multi-step order fulfillment from Square orders to shipping with CSV export and tracking upload",
+      "files": ["src/components/FulfillmentPage.tsx"]
+    },
+    {
+      "name": "Marketing Integration",
+      "description": "Email campaigns and member communication tools",
+      "files": ["src/components/MarketingIntegration.tsx"]
+    },
+    {
+      "name": "Embeddable Signup Widget",
+      "description": "Embeddable signup form for Square websites with plan selection and wine preview",
+      "files": ["src/components/EmbeddableSignup.tsx", "src/components/EmbeddableSignupPage.tsx"]
+    },
+    {
+      "name": "Customer Wine Selection",
+      "description": "Interactive wine selection process with swapping, filtering, and preference management",
+      "files": ["src/components/customer/WineSelectionReview.tsx"]
+    },
+    {
+      "name": "Bonus Upsell",
+      "description": "Additional wine upsell functionality for customers",
+      "files": ["src/components/customer/BonusUpsell.tsx"]
+    },
+    {
+      "name": "Delivery Date Confirmation",
+      "description": "Customer delivery date selection and confirmation",
+      "files": ["src/components/customer/DeliveryDateConfirmation.tsx"]
+    },
+    {
+      "name": "Payment Collection",
+      "description": "Secure payment processing and method management for customers",
+      "files": ["src/components/customer/PaymentCollection.tsx"]
+    },
+    {
+      "name": "SaaS Admin Dashboard",
+      "description": "Platform management dashboard for SaaS administrators with multi-club oversight",
+      "files": ["src/components/SuperadminDashboard.tsx"]
+    },
+    {
+      "name": "Organizations Management",
+      "description": "Manage all wine clubs and their metrics from SaaS admin portal",
+      "files": ["src/components/ClubsOrganizationsPage.tsx"]
+    },
+    {
+      "name": "Users Management",
+      "description": "Create and manage admin users across all wine clubs",
+      "files": ["src/components/ClubsUsersPage.tsx"]
+    },
+    {
+      "name": "Billing Management",
+      "description": "Stripe integration for platform subscription management",
+      "files": ["src/components/BillingPage.tsx"]
+    },
+    {
+      "name": "Authentication System",
+      "description": "Supabase Auth integration with magic links, verification, and multi-tenant support",
+      "files": ["src/components/AuthPage.tsx"]
+    },
+    {
+      "name": "Multi-tenant Context",
+      "description": "ClientContext for managing wine club state and multi-tenant data isolation",
+      "files": ["src/contexts/ClientContext.tsx"]
+    },
+    {
+      "name": "API Integration Layer",
+      "description": "Comprehensive API layer for Supabase and Square API integration with direct client calls",
+      "files": ["src/utils/api.ts"]
+    },
+    {
+      "name": "Supabase Edge Functions",
+      "description": "Backend Edge Functions for Square API integration, email services, and complex operations",
+      "files": ["src/supabase/functions/server/index.tsx", "src/supabase/functions/server/square-helpers.tsx", "src/supabase/functions/server/square-live-inventory.tsx"]
+    },
+    {
+      "name": "UI Component Library",
+      "description": "Comprehensive Shadcn/ui component library with custom components",
+      "files": ["src/components/ui/"]
+    },
+    {
+      "name": "Admin Layout",
+      "description": "Responsive admin layout with sidebar navigation and multi-tenant support",
+      "files": ["src/components/AdminLayout.tsx"]
+    },
+    {
+      "name": "Superadmin Layout",
+      "description": "SaaS admin layout for platform management",
+      "files": ["src/components/SuperadminLayout.tsx"]
+    }
+  ]
+}

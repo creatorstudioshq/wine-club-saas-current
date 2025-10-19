@@ -4,6 +4,9 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Skeleton } from "./ui/skeleton";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import { Building2, Users, DollarSign, Package, Plus, Eye, Settings } from "lucide-react";
 import { api } from "../utils/api";
 
@@ -26,6 +29,56 @@ interface WineClub {
 export function OrganizationsPage() {
   const [wineClubs, setWineClubs] = useState<WineClub[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAddClubModalOpen, setIsAddClubModalOpen] = useState(false);
+  const [newClub, setNewClub] = useState({
+    name: '',
+    email: '',
+    domain: '',
+    ownerName: '',
+    ownerEmail: ''
+  });
+
+  const handleAddClub = async () => {
+    try {
+      console.log('Adding new wine club:', newClub);
+      
+      const clubData = {
+        id: (wineClubs.length + 1).toString(), // Simple ID generation
+        name: newClub.name,
+        email: newClub.email,
+        domain: newClub.domain || null,
+        ownerName: newClub.ownerName || null,
+        ownerEmail: newClub.ownerEmail || null,
+        status: 'setup' as const,
+        members: 0,
+        monthlyRevenue: 0,
+        squareConnected: false,
+        totalShipments: 0,
+        lastActivity: new Date().toISOString()
+      };
+      
+      console.log('Sending club data:', clubData);
+      
+      const result = await api.createWineClub(clubData);
+      console.log('Create result:', result);
+      
+      // Refresh data to show new club
+      await fetchAllWineClubs();
+      setIsAddClubModalOpen(false);
+      setNewClub({
+        name: '',
+        email: '',
+        domain: '',
+        ownerName: '',
+        ownerEmail: ''
+      });
+      
+      alert('Wine club added successfully!');
+    } catch (error: any) {
+      console.error('Failed to add wine club:', error);
+      alert('Failed to add wine club: ' + (error.message || 'Unknown error'));
+    }
+  };
 
   useEffect(() => {
     const fetchAllWineClubs = async () => {
@@ -216,7 +269,7 @@ export function OrganizationsPage() {
                     Manage wine club profiles, owners, and activity status
                   </CardDescription>
                 </div>
-                <Button>
+                <Button onClick={() => setIsAddClubModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add New Club
                 </Button>
@@ -283,6 +336,90 @@ export function OrganizationsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Add Club Modal */}
+      <Dialog open={isAddClubModalOpen} onOpenChange={setIsAddClubModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Wine Club</DialogTitle>
+            <DialogDescription>
+              Create a new wine club organization. The owner will be able to set up their Square integration.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="club-name" className="text-right">
+                Club Name
+              </Label>
+              <Input
+                id="club-name"
+                value={newClub.name}
+                onChange={(e) => setNewClub({...newClub, name: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter wine club name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="club-email" className="text-right">
+                Club Email
+              </Label>
+              <Input
+                id="club-email"
+                type="email"
+                value={newClub.email}
+                onChange={(e) => setNewClub({...newClub, email: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter club email"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="club-domain" className="text-right">
+                Domain
+              </Label>
+              <Input
+                id="club-domain"
+                value={newClub.domain}
+                onChange={(e) => setNewClub({...newClub, domain: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter website domain"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="owner-name" className="text-right">
+                Owner Name
+              </Label>
+              <Input
+                id="owner-name"
+                value={newClub.ownerName}
+                onChange={(e) => setNewClub({...newClub, ownerName: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter owner name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="owner-email" className="text-right">
+                Owner Email
+              </Label>
+              <Input
+                id="owner-email"
+                type="email"
+                value={newClub.ownerEmail}
+                onChange={(e) => setNewClub({...newClub, ownerEmail: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter owner email"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsAddClubModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddClub}>
+              Add Wine Club
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

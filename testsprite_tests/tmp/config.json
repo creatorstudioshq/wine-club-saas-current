@@ -1,7 +1,18 @@
 {
-  "status": "init",
+  "status": "commited",
+  "type": "frontend",
   "scope": "codebase",
-  "type": "backend",
-  "localEndpoint": "http://localhost:3002",
-  "serverPort": 53995
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "demo@wineclub.com",
+  "loginPassword": "demo123",
+  "executionArgs": {
+    "projectName": "wine-club-saas-current",
+    "projectPath": "/Users/owner/Development /wine-club-saas-current",
+    "testIds": [],
+    "additionalInstruction": "Test the Wine Club SaaS Platform frontend including admin dashboard with real-time metrics, member management with Square sync, plan management with Square customer groups, club setup wizard with credential persistence, customer preferences and custom shipments, fulfillment workflow with CSV export/upload, embeddable signup widget with real data only, SaaS admin portal for multi-club management, and authentication flows with multi-tenant data isolation. Focus on verifying no fallback/dummy data is displayed and all Square API integrations work correctly.",
+    "envs": {
+      "API_KEY": "sk-user-9QFBKfBusS6vUTMzg1eO0sNt1jAeLxP2GVhFc6Bz39CrNZrvKoKSfs6iZtHSjdba8oTmZOKadNsT8_LYS-Hi4nQidEZIvDWZ7HCqcTv8H3RJgNQsx9rCVIaixCDZJNiEsCg"
+    }
+  },
+  "proxy": "http://9eae4e24-b770-42e5-a7d6-aa94a93ed738:XWA9tNFHFzggOiQOO0FpomYJW5lEOUrf@tun.testsprite.com:8080"
 }

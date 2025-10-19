@@ -19,7 +19,15 @@ export function MembersPage() {
   const [selectedPlan, setSelectedPlan] = useState("all");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
+  const [newMember, setNewMember] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subscription_plan_id: '',
+    status: 'active'
+  });
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState([]);
   const [plans, setPlans] = useState([]);
@@ -91,6 +99,44 @@ export function MembersPage() {
     } catch (error: any) {
       console.error('Failed to update member:', error);
       alert('Failed to update member: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  const handleAddMember = async () => {
+    try {
+      console.log('Adding new member:', newMember);
+      
+      // Ensure we have the required fields
+      const memberData = {
+        name: newMember.name,
+        email: newMember.email,
+        phone: newMember.phone || null,
+        subscription_plan_id: newMember.subscription_plan_id || null,
+        status: newMember.status || 'active',
+        wine_club_id: currentWineClub.id
+      };
+      
+      console.log('Sending member data:', memberData);
+      
+      const result = await api.createMember(memberData);
+      console.log('Create result:', result);
+      
+      // Refresh data to show new member
+      await fetchData();
+      setIsAddModalOpen(false);
+      setNewMember({
+        name: '',
+        email: '',
+        phone: '',
+        subscription_plan_id: '',
+        status: 'active'
+      });
+      
+      // Show success message
+      alert('Member added successfully! Square customer will be created automatically.');
+    } catch (error: any) {
+      console.error('Failed to add member:', error);
+      alert('Failed to add member: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -188,7 +234,7 @@ export function MembersPage() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button>
+          <Button onClick={() => setIsAddModalOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
             Add Member
           </Button>
@@ -420,6 +466,109 @@ export function MembersPage() {
             </Button>
             <Button onClick={handleUpdateMember}>
               Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Member Modal */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Member</DialogTitle>
+            <DialogDescription>
+              Add a new member to the wine club. They will be automatically added to Square.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="new-name"
+                value={newMember.name}
+                onChange={(e) => setNewMember({...newMember, name: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter member name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="new-email"
+                type="email"
+                value={newMember.email}
+                onChange={(e) => setNewMember({...newMember, email: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter email address"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-phone" className="text-right">
+                Phone
+              </Label>
+              <Input
+                id="new-phone"
+                value={newMember.phone}
+                onChange={(e) => setNewMember({...newMember, phone: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter phone number"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-plan" className="text-right">
+                Plan
+              </Label>
+              <Select 
+                value={newMember.subscription_plan_id} 
+                onValueChange={(value) => setNewMember({...newMember, subscription_plan_id: value})}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {plans.reduce((acc, plan) => {
+                    // Deduplicate plans by name
+                    if (!acc.find(p => p.name === plan.name)) {
+                      acc.push(plan);
+                    }
+                    return acc;
+                  }, []).map((plan) => (
+                    <SelectItem key={plan.id} value={plan.id}>
+                      {plan.name} - {plan.bottle_count} bottles
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-status" className="text-right">
+                Status
+              </Label>
+              <Select 
+                value={newMember.status} 
+                onValueChange={(value) => setNewMember({...newMember, status: value})}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="paused">Paused</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddMember}>
+              Add Member
             </Button>
           </div>
         </DialogContent>

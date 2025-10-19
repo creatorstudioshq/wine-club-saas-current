@@ -1,0 +1,162 @@
+{
+  "prd": {
+    "project_name": "Wine Club SaaS Platform",
+    "version": "1.0",
+    "description": "A comprehensive multi-tenant SaaS platform for wine clubs that integrates with Square API to provide end-to-end wine club management.",
+    "stakeholders": [
+      {
+        "role": "Wine Club Owners",
+        "description": "Manage their wine club operations through the admin portal"
+      },
+      {
+        "role": "Wine Club Members", 
+        "description": "Use the customer portal for wine selection and delivery management"
+      },
+      {
+        "role": "SaaS Platform Administrators",
+        "description": "Manage multiple wine clubs from the superadmin portal"
+      }
+    ],
+    "goals": [
+      "Enable wine club owners to manage memberships, create subscription plans, and process payments",
+      "Provide customers with intuitive wine selection and delivery experience",
+      "Support multi-tenant architecture with isolated data per wine club",
+      "Integrate seamlessly with Square API for inventory, customers, and payments"
+    ],
+    "features": [
+      {
+        "id": "FEAT-001",
+        "name": "Admin Dashboard",
+        "description": "Real-time metrics dashboard with member distribution, plan analytics, and revenue tracking",
+        "priority": "High",
+        "user_stories": [
+          "As a wine club owner, I want to see total members, new members, and revenue metrics so I can track business performance",
+          "As a wine club owner, I want to see growth indicators so I can understand business trends"
+        ]
+      },
+      {
+        "id": "FEAT-002", 
+        "name": "Member Management",
+        "description": "Complete member lifecycle management with Square customer sync and plan assignment",
+        "priority": "High",
+        "user_stories": [
+          "As a wine club owner, I want to manage member information so I can maintain accurate records",
+          "As a wine club owner, I want to sync members with Square so I can process payments",
+          "As a wine club owner, I want to assign members to plans so I can manage subscriptions"
+        ]
+      },
+      {
+        "id": "FEAT-003",
+        "name": "Plan Management", 
+        "description": "Subscription plan creation and management with Square customer group integration",
+        "priority": "High",
+        "user_stories": [
+          "As a wine club owner, I want to create subscription plans so I can offer different membership tiers",
+          "As a wine club owner, I want to create Square customer groups so I can manage plan-based payments"
+        ]
+      },
+      {
+        "id": "FEAT-004",
+        "name": "Club Setup Wizard",
+        "description": "Multi-step wizard for Square integration, preferences, inventory, and shipping configuration",
+        "priority": "High", 
+        "user_stories": [
+          "As a wine club owner, I want to configure Square credentials so I can integrate with my Square account",
+          "As a wine club owner, I want to manage wine inventory so I can control what wines are offered",
+          "As a wine club owner, I want to configure shipping zones so I can set delivery rates"
+        ]
+      },
+      {
+        "id": "FEAT-005",
+        "name": "Customer Preferences",
+        "description": "Global preferences management and custom shipment builder for member-specific wine assignments",
+        "priority": "Medium",
+        "user_stories": [
+          "As a wine club owner, I want to create global preferences so I can offer wine categories",
+          "As a wine club owner, I want to create custom shipments so I can assign specific wines to members"
+        ]
+      },
+      {
+        "id": "FEAT-006",
+        "name": "Fulfillment Workflow",
+        "description": "Multi-step order fulfillment from Square orders to shipping with CSV export and tracking upload",
+        "priority": "High",
+        "user_stories": [
+          "As a wine club owner, I want to process Square orders so I can fulfill shipments",
+          "As a wine club owner, I want to export fulfillment data so I can track shipments",
+          "As a wine club owner, I want to upload tracking numbers so I can update customers"
+        ]
+      },
+      {
+        "id": "FEAT-007",
+        "name": "Embeddable Signup Widget",
+        "description": "Embeddable signup form for Square websites with plan selection and wine preview",
+        "priority": "Medium",
+        "user_stories": [
+          "As a wine club owner, I want to embed a signup form so customers can join my wine club",
+          "As a customer, I want to see real plans so I can make informed decisions"
+        ]
+      },
+      {
+        "id": "FEAT-008",
+        "name": "SaaS Admin Portal",
+        "description": "Platform management dashboard for SaaS administrators with multi-club oversight",
+        "priority": "Medium",
+        "user_stories": [
+          "As a SaaS admin, I want to manage multiple wine clubs so I can oversee the platform",
+          "As a SaaS admin, I want to manage admin users so I can control access"
+        ]
+      },
+      {
+        "id": "FEAT-009",
+        "name": "Authentication & Multi-tenancy",
+        "description": "User authentication with multi-tenant data isolation and RLS policies",
+        "priority": "High",
+        "user_stories": [
+          "As a user, I want to authenticate securely so I can access the platform",
+          "As a wine club owner, I want my data isolated so I can't see other wine clubs' data"
+        ]
+      }
+    ],
+    "technical_requirements": [
+      {
+        "requirement": "Frontend Technology",
+        "description": "React + TypeScript + Vite with Shadcn/ui components and Tailwind CSS"
+      },
+      {
+        "requirement": "Backend Technology", 
+        "description": "Supabase (PostgreSQL + Edge Functions) with Row Level Security"
+      },
+      {
+        "requirement": "API Integration",
+        "description": "Square API integration for payments, customers, and inventory"
+      },
+      {
+        "requirement": "Multi-tenant Architecture",
+        "description": "Data isolation per wine club with proper RLS policies"
+      },
+      {
+        "requirement": "Authentication",
+        "description": "Supabase Auth with magic links and verification"
+      }
+    ],
+    "acceptance_criteria": [
+      "Dashboard displays real-time metrics with growth indicators",
+      "Member management syncs with Square customers and displays real emails",
+      "Plan creation creates Square customer groups automatically",
+      "Club setup wizard saves credentials and doesn't reset on refresh",
+      "Fulfillment workflow processes orders through all steps",
+      "Embeddable widget shows only real plans without fallback data",
+      "Multi-tenant data isolation works correctly",
+      "Authentication directs users to correct portals based on role"
+    ],
+    "success_metrics": [
+      "All core features function without errors",
+      "Square API integration works seamlessly",
+      "Multi-tenant data isolation is maintained",
+      "User authentication flows work correctly",
+      "Real-time data updates properly",
+      "No fallback/dummy data is displayed"
+    ]
+  }
+}

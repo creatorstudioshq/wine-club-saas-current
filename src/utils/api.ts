@@ -420,6 +420,91 @@ export const api = {
     return res.json();
   },
 
+  // Shipments
+  async getShipments(wineClubId: string) {
+    const { data, error } = await supabase
+      .from('shipments')
+      .select(`
+        *,
+        shipment_items(
+          *,
+          subscription_plans(name, bottle_count)
+        )
+      `)
+      .eq('wine_club_id', wineClubId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createShipment(wineClubId: string, shipmentData: any) {
+    const { data, error } = await supabase
+      .from('shipments')
+      .insert({
+        ...shipmentData,
+        wine_club_id: wineClubId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updateShipment(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('shipments')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteShipment(id: string) {
+    const { error } = await supabase
+      .from('shipments')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+  },
+
+  // Wine Clubs (for SaaS Admin)
+  async getAllWineClubs() {
+    const { data, error } = await supabase
+      .from('wine_clubs')
+      .select(`
+        *,
+        members(count),
+        subscription_plans(count)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createWineClub(clubData: any) {
+    const { data, error } = await supabase
+      .from('wine_clubs')
+      .insert({
+        ...clubData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
   // Admin Users
   async getAllAdminUsers() {
     const { data, error } = await supabase

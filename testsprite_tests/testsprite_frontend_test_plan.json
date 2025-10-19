@@ -1,0 +1,435 @@
+[
+  {
+    "id": "TC001",
+    "title": "Admin Dashboard Metrics Display",
+    "description": "Verify that the admin dashboard displays real-time metrics including total members, new members, revenue, and growth indicators accurately.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a wine club owner with valid credentials."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the Admin Dashboard."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify total members count is displayed and matches the backend data."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify new members count is shown for the selected period."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify revenue metrics reflect recent transactions."
+      },
+      {
+        "type": "assertion",
+        "description": "Check that growth indicators are computed and displayed correctly."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Member Management and Square Customer Sync",
+    "description": "Verify member lifecycle management including adding, updating members and syncing with Square customers.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as wine club owner."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Member Management."
+      },
+      {
+        "type": "action",
+        "description": "Add a new member with valid details."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify member is saved and visible in the list."
+      },
+      {
+        "type": "action",
+        "description": "Edit the member's information."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the edited data is correctly updated."
+      },
+      {
+        "type": "action",
+        "description": "Trigger manual sync with Square."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure the member data is correctly reflected in the Square customers system."
+      },
+      {
+        "type": "action",
+        "description": "Assign the member to a subscription plan."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the plan assignment is saved and reflected in Square customer groups."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Subscription Plan Creation and Square Customer Group Integration",
+    "description": "Validate creation of subscription plans and automatic creation of corresponding Square customer groups.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as wine club owner."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Plan Management."
+      },
+      {
+        "type": "action",
+        "description": "Create a new subscription plan with valid parameters."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify new plan is listed in Plan Management."
+      },
+      {
+        "type": "assertion",
+        "description": "Check that a Square customer group corresponding to the plan is automatically created."
+      },
+      {
+        "type": "assertion",
+        "description": "Validate that the Square API call was successful and data is consistent."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Club Setup Wizard Functionality and Persistence",
+    "description": "Verify multi-step club setup wizard saves Square credentials, preference settings, inventory, and shipping configurations without loss on refresh.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as wine club owner."
+      },
+      {
+        "type": "action",
+        "description": "Open Club Setup Wizard."
+      },
+      {
+        "type": "action",
+        "description": "Input valid Square API credentials and proceed."
+      },
+      {
+        "type": "action",
+        "description": "Configure wine inventory and advance."
+      },
+      {
+        "type": "action",
+        "description": "Set up shipping zones and save."
+      },
+      {
+        "type": "action",
+        "description": "Refresh the wizard page."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all entered data including credentials, inventory, and shipping zones are persisted after refresh."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Customer Preferences and Custom Shipment Builder",
+    "description": "Test creating global preferences and assigning custom shipments with specific wines to members properly.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as wine club owner."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Customer Preferences section."
+      },
+      {
+        "type": "action",
+        "description": "Create global wine category preferences."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify global preferences are saved and visible."
+      },
+      {
+        "type": "action",
+        "description": "Use the custom shipment builder to assign specific wines to a member."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the assigned wines are correctly linked to the member's shipment."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Fulfillment Workflow End-to-End",
+    "description": "Validate the complete fulfillment workflow from Square order processing to shipping, including CSV export and tracking number uploads.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as wine club owner."
+      },
+      {
+        "type": "action",
+        "description": "Access Fulfillment Workflow section."
+      },
+      {
+        "type": "action",
+        "description": "Retrieve and process incoming Square orders."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify orders are correctly displayed and processed stepwise."
+      },
+      {
+        "type": "action",
+        "description": "Export fulfillment data as CSV."
+      },
+      {
+        "type": "assertion",
+        "description": "Check the exported CSV file format and contents for correctness."
+      },
+      {
+        "type": "action",
+        "description": "Upload shipment tracking numbers against processed orders."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm tracking numbers are saved and visible to customers."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Embeddable Signup Widget Display and Functionality",
+    "description": "Ensure the embeddable signup widget displays only real subscription plans with wine previews and allows successful membership signup.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Embed the signup widget into a Square website."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the widget displays only valid subscription plans from backend with no fallback or dummy data."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm wine previews correspond to the plans shown."
+      },
+      {
+        "type": "action",
+        "description": "Submit a signup form selecting a plan with valid customer data."
+      },
+      {
+        "type": "assertion",
+        "description": "Check successful signup and confirmation flow."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "SaaS Admin Portal Multi-Club Management",
+    "description": "Verify SaaS administrators can manage multiple wine clubs and admin users with correct access controls.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as SaaS platform administrator."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to SaaS Admin Portal dashboard."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm list of all wine clubs managed is displayed."
+      },
+      {
+        "type": "action",
+        "description": "Select a wine club and view its details."
+      },
+      {
+        "type": "action",
+        "description": "Manage admin users by adding, editing, or removing."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify admin user access permissions are updated accordingly."
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "User Authentication and Multi-Tenancy Data Isolation",
+    "description": "Test secure authentication flows along with role-based portal redirection and strict multi-tenant data isolation enforcing row-level security.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt login with valid wine club owner credentials using magic link."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify successful login and redirection to appropriate wine club owner portal."
+      },
+      {
+        "type": "action",
+        "description": "Login as a wine club member and access customer portal."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure member data is limited to own membership and club."
+      },
+      {
+        "type": "action",
+        "description": "Login as SaaS platform administrator."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm access to all club data with proper admin controls."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to query data of other wine clubs directly via backend."
+      },
+      {
+        "type": "assertion",
+        "description": "Validate row-level security denies access to unauthorized data."
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Error Handling on Invalid Square API Credentials",
+    "description": "Verify that invalid Square API credentials entered during Club Setup Wizard produce proper error messages and prevent progression until corrected.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to Club Setup Wizard."
+      },
+      {
+        "type": "action",
+        "description": "Enter invalid Square API credentials."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save and proceed to next step."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appropriate error message is shown about invalid credentials."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm progression to next step is blocked."
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Graceful Handling of Square API Failures",
+    "description": "Test application behavior when Square API is unreachable or returns errors during customer, payment, or inventory interactions.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Simulate Square API downtime or return error responses during member sync."
+      },
+      {
+        "type": "action",
+        "description": "Perform member sync action."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user receives clear error notification about API failure."
+      },
+      {
+        "type": "assertion",
+        "description": "Application recovers gracefully without crashing or data corruption."
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "UI Validation for Required Fields and Input Formats",
+    "description": "Verify UI validations across forms for required fields, email formats, and invalid inputs in membership, plan creation, and signup widget.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open Member Management add/edit form."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit form leaving required fields empty or entering invalid emails."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that appropriate validation messages are displayed and submission is blocked."
+      },
+      {
+        "type": "action",
+        "description": "Repeat similar validation checks on Plan Management forms and Signup Widget."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm consistent validation behavior across forms."
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Real-Time Data Updates on Dashboard",
+    "description": "Verify that the Admin Dashboard reflects real-time updates when data such as new members or revenue changes occur.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login and open Admin Dashboard."
+      },
+      {
+        "type": "action",
+        "description": "Simulate a new member signup or payment through backend or API."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the dashboard metrics update in real-time without manual page refresh."
+      }
+    ]
+  }
+]
