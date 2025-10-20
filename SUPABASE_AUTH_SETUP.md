@@ -35,10 +35,17 @@ This link will expire in 1 hour.
 ### 3. Set Site URL
 In Supabase Dashboard → Authentication → URL Configuration:
 
-- **Site URL**: `http://localhost:3000` (for development)
+#### **Development:**
+- **Site URL**: `http://localhost:3000`
 - **Redirect URLs**: 
   - `http://localhost:3000/auth/callback`
   - `http://localhost:3000/auth/reset-password`
+
+#### **Production:**
+- **Site URL**: `https://wineclub.justaskarc.com`
+- **Redirect URLs**: 
+  - `https://wineclub.justaskarc.com/auth/callback`
+  - `https://wineclub.justaskarc.com/auth/reset-password`
 
 ### 4. Create Test Users
 Run this SQL in Supabase SQL Editor:
@@ -85,6 +92,23 @@ Once logged in as SaaS Parent Admin:
 2. Click "SaaS Parent Admin" dropdown
 3. Select "Wine Club Demo (ID: 1)" or "King Frosch Login (ID: 2)"
 4. Should switch to respective wine club context
+
+### 7. Production Testing
+
+#### **Test on Production Domain:**
+1. Deploy to `https://wineclub.justaskarc.com`
+2. Test magic link: `klausbellinghausen@gmail.com`
+3. Test password reset: `demo@wineclub.com`
+4. Test SaaS admin login: `jimmy@arccom.io`
+5. Verify account switching works
+
+#### **Production Checklist:**
+- ✅ Supabase Site URL set to production domain
+- ✅ Redirect URLs include production domain
+- ✅ Email templates configured
+- ✅ DNS pointing to Vercel deployment
+- ✅ SSL certificate active
+- ✅ All auth flows working
 
 ## 🚨 Troubleshooting
 
