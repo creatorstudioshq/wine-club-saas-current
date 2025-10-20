@@ -50,8 +50,8 @@ export function AdminLayout({ children, currentPage, onPageChange, onLogout }: A
             <div className="flex items-center gap-2">
               <Wine className="h-8 w-8 text-primary" />
               <div>
-                <h2>Wine Club Manager</h2>
-                <p className="text-sm text-muted-foreground">Admin Panel</p>
+                <h2>{currentWineClub?.name || "Wine Club"}</h2>
+                <p className="text-sm text-muted-foreground">Wine Club Manager (Portal)</p>
               </div>
             </div>
           </SidebarHeader>
@@ -107,15 +107,6 @@ export function AdminLayout({ children, currentPage, onPageChange, onLogout }: A
           <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
             <div className="flex h-14 items-center gap-4 px-4">
               <SidebarTrigger />
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{currentWineClub?.name?.substring(0, 2).toUpperCase() || "WC"}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm">{currentWineClub?.name || "Wine Club"}</p>
-                  <p className="text-xs text-muted-foreground">Wine Club Management</p>
-                </div>
-              </div>
               <div className="ml-auto flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={onLogout}>
                   Logout

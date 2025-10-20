@@ -21,19 +21,38 @@ export function ClientProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // For now, default to wine club #1 for development
+    // Check if this is a demo account or real wine club
     // In production, this would come from authentication/user session
-    const defaultClub: WineClub = {
-      id: "1", // Wine club client #1
-      name: "King Frosch Wine Club",
-      email: "admin@kingfrosch.com"
-    };
+    const isDemoAccount = window.location.hostname === 'localhost' || 
+                         window.location.hostname.includes('demo') ||
+                         localStorage.getItem('demo_mode') === 'true';
     
-    // Use setTimeout to avoid synchronous setState in effect
-    setTimeout(() => {
-      setCurrentWineClub(defaultClub);
-      setIsLoading(false);
-    }, 0);
+    if (isDemoAccount) {
+      // Demo account for testing
+      const demoClub: WineClub = {
+        id: "demo", 
+        name: "Demo Wine Club",
+        email: "demo@wineclub.com"
+      };
+      
+      setTimeout(() => {
+        setCurrentWineClub(demoClub);
+        setIsLoading(false);
+      }, 0);
+    } else {
+      // Real wine club account (would come from auth)
+      // For now, default to wine club #1 for development
+      const defaultClub: WineClub = {
+        id: "1", // Wine club client #1
+        name: "King Frosch Wine Club",
+        email: "admin@kingfrosch.com"
+      };
+      
+      setTimeout(() => {
+        setCurrentWineClub(defaultClub);
+        setIsLoading(false);
+      }, 0);
+    }
   }, []);
 
   return (
