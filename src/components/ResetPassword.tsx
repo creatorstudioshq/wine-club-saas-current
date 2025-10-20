@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -12,8 +11,12 @@ const supabaseUrl = 'https://aammkgdhfmkukpqkdduj.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbW1rZ2RoZm1rdWtwcWtkZHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MzgxNTIsImV4cCI6MjA3NTAxNDE1Mn0.V-9vkcctLQ8flXrdc50c3ghIHhxnNGsKl6HfvXHzlY8';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export function ResetPassword() {
-  const navigate = useNavigate();
+interface ResetPasswordProps {
+  onBackToAuth: () => void;
+  onPasswordReset: () => void;
+}
+
+export function ResetPassword({ onBackToAuth, onPasswordReset }: ResetPasswordProps) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +48,7 @@ export function ResetPassword() {
       
       setSuccess(true);
       setTimeout(() => {
-        navigate('/dashboard');
+        onPasswordReset();
       }, 2000);
     } catch (error: any) {
       setError(error.message);
@@ -122,7 +125,7 @@ export function ResetPassword() {
               <Button
                 variant="link"
                 size="sm"
-                onClick={() => navigate('/auth')}
+                onClick={onBackToAuth}
                 className="text-sm text-muted-foreground hover:text-primary"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />

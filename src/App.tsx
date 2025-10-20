@@ -318,12 +318,29 @@ function AppContent() {
 
   // Auth callback page
   if (appMode === "auth-callback") {
-    return <AuthCallback />;
+    return (
+      <AuthCallback 
+        onAuthSuccess={(email) => {
+          // Determine which portal to redirect to based on user email
+          if (email === 'jimmy@arccom.io') {
+            setAppMode('superadmin');
+          } else {
+            setAppMode('admin');
+          }
+        }}
+        onAuthError={() => setAppMode('auth')}
+      />
+    );
   }
 
   // Reset password page
   if (appMode === "reset-password") {
-    return <ResetPassword />;
+    return (
+      <ResetPassword 
+        onBackToAuth={() => setAppMode('auth')}
+        onPasswordReset={() => setAppMode('admin')}
+      />
+    );
   }
 
   if (appMode === "auth") {

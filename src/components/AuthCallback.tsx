@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 
-export function AuthCallback() {
-  const navigate = useNavigate();
+interface AuthCallbackProps {
+  onAuthSuccess: (email: string) => void;
+  onAuthError: () => void;
+}
 
+export function AuthCallback({ onAuthSuccess, onAuthError }: AuthCallbackProps) {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
@@ -12,23 +14,19 @@ export function AuthCallback() {
         const user = await api.getCurrentUser();
         
         if (user) {
-          // Determine which portal to redirect to based on user email
-          if (user.email === 'jimmy@arccom.io') {
-            navigate('/superadmin');
-          } else {
-            navigate('/dashboard');
-          }
+          // Call the parent component's auth success handler
+          onAuthSuccess(user.email || '');
         } else {
-          navigate('/auth');
+          onAuthError();
         }
       } catch (error) {
         console.error('Auth callback error:', error);
-        navigate('/auth');
+        onAuthError();
       }
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [onAuthSuccess, onAuthError]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex items-center justify-center">
