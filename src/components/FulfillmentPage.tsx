@@ -36,8 +36,17 @@ interface SquareOrder {
   order_number: string;
   customer_name: string;
   customer_email: string;
+  customer_phone: string;
+  address_line_1: string;
+  address_line_2: string;
+  city: string;
+  state: string;
+  zip: string;
   order_date: string;
   total_amount: number;
+  amount_paid: number;
+  date_paid: string;
+  wine_club_plan: string;
   status: string;
   line_items: SquareLineItem[];
   created_at: string;
@@ -53,6 +62,7 @@ interface SquareLineItem {
   variation_id: string;
   category: string;
   in_stock: boolean;
+  status: 'pending' | 'picked' | 'out_of_stock' | 'removed';
 }
 
 interface PickedOrder {
@@ -104,6 +114,8 @@ export function FulfillmentPage() {
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [lastShipmentDate, setLastShipmentDate] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<SquareOrder | null>(null);
+  const [isModifyDialogOpen, setIsModifyDialogOpen] = useState(false);
   
   // Picked Tab
   const [pickedOrders, setPickedOrders] = useState<PickedOrder[]>([]);
@@ -138,8 +150,17 @@ export function FulfillmentPage() {
           order_number: "ORD-001",
           customer_name: "John Smith",
           customer_email: "john@example.com",
+          customer_phone: "+1-555-0123",
+          address_line_1: "123 Main Street",
+          address_line_2: "Apt 4B",
+          city: "San Francisco",
+          state: "CA",
+          zip: "94102",
           order_date: "2025-01-15",
           total_amount: 89.00,
+          amount_paid: 89.00,
+          date_paid: "2025-01-15",
+          wine_club_plan: "Gold",
           status: "pending",
           line_items: [
             {
@@ -151,7 +172,8 @@ export function FulfillmentPage() {
               item_id: "wine_1",
               variation_id: "var_1",
               category: "Red Wine",
-              in_stock: true
+              in_stock: true,
+              status: 'pending'
             }
           ],
           created_at: "2025-01-15T10:00:00Z"
@@ -161,8 +183,17 @@ export function FulfillmentPage() {
           order_number: "ORD-002",
           customer_name: "Sarah Johnson",
           customer_email: "sarah@example.com",
+          customer_phone: "+1-555-0124",
+          address_line_1: "456 Oak Avenue",
+          address_line_2: "",
+          city: "Los Angeles",
+          state: "CA",
+          zip: "90210",
           order_date: "2025-01-16",
           total_amount: 178.00,
+          amount_paid: 178.00,
+          date_paid: "2025-01-16",
+          wine_club_plan: "Silver",
           status: "pending",
           line_items: [
             {
@@ -174,7 +205,8 @@ export function FulfillmentPage() {
               item_id: "wine_2",
               variation_id: "var_2",
               category: "White Wine",
-              in_stock: true
+              in_stock: true,
+              status: 'pending'
             }
           ],
           created_at: "2025-01-16T14:30:00Z"
@@ -189,31 +221,81 @@ export function FulfillmentPage() {
     }
   };
 
-  const markAsPicked = (orderId: string) => {
+  // Action functions for order management
+  const markItemAsPicked = (orderId: string, itemId: string) => {
+    setOrders(orders.map(order => {
+      if (order.id === orderId) {
+        return {
+          ...order,
+          line_items: order.line_items.map(item => 
+            item.id === itemId ? { ...item, status: 'picked' as const } : item
+          )
+        };
+      }
+      return order;
+    }));
+  };
+
+  const markItemAsOutOfStock = (orderId: string, itemId: string) => {
+    setOrders(orders.map(order => {
+      if (order.id === orderId) {
+        return {
+          ...order,
+          line_items: order.line_items.map(item => 
+            item.id === itemId ? { ...item, status: 'out_of_stock' as const } : item
+          )
+        };
+      }
+      return order;
+    }));
+  };
+
+  const removeItem = (orderId: string, itemId: string) => {
+    setOrders(orders.map(order => {
+      if (order.id === orderId) {
+        return {
+          ...order,
+          line_items: order.line_items.map(item => 
+            item.id === itemId ? { ...item, status: 'removed' as const } : item
+          )
+        };
+      }
+      return order;
+    }));
+  };
+
+  const isOrderReadyToShip = (order: SquareOrder) => {
+    const activeItems = order.line_items.filter(item => item.status !== 'removed');
+    return activeItems.length > 0 && activeItems.every(item => item.status === 'picked');
+  };
+
+  const markOrderAsReadyToShip = (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
-    if (!order) return;
+    if (!order || !isOrderReadyToShip(order)) return;
 
     // Group items by wine and create box numbers
     const pickedItems: PickedItem[] = [];
     let boxNumber = 1;
     
-    order.line_items.forEach(item => {
-      for (let i = 0; i < item.quantity; i++) {
-        pickedItems.push({
-          id: `${item.id}_${i}`,
-          order_number: `${order.order_number}-${boxNumber}`,
-          wine_name: item.name,
-          quantity: 1,
-          box_number: boxNumber,
-          picked_at: new Date().toISOString(),
-        });
-        
-        // Every 12 bottles = new box
-        if ((i + 1) % 12 === 0) {
-          boxNumber++;
+    order.line_items
+      .filter(item => item.status === 'picked')
+      .forEach(item => {
+        for (let i = 0; i < item.quantity; i++) {
+          pickedItems.push({
+            id: `${item.id}_${i}`,
+            order_number: `${order.order_number}-${boxNumber}`,
+            wine_name: item.name,
+            quantity: 1,
+            box_number: boxNumber,
+            picked_at: new Date().toISOString(),
+          });
+          
+          // Every 12 bottles = new box
+          if ((i + 1) % 12 === 0) {
+            boxNumber++;
+          }
         }
-      }
-    });
+      });
 
     const pickedOrder: PickedOrder = {
       id: orderId,
@@ -227,6 +309,37 @@ export function FulfillmentPage() {
 
     setPickedOrders([...pickedOrders, pickedOrder]);
     setOrders(orders.filter(o => o.id !== orderId));
+  };
+
+  const openModifyOrderDialog = (order: SquareOrder) => {
+    setEditingOrder({ ...order });
+    setIsModifyDialogOpen(true);
+  };
+
+  const saveModifiedOrder = () => {
+    if (!editingOrder) return;
+
+    // Calculate new total with plan discount
+    const planDiscounts = {
+      'Gold': 0.20,
+      'Silver': 0.15,
+      'Platinum': 0.25
+    };
+    
+    const discount = planDiscounts[editingOrder.wine_club_plan as keyof typeof planDiscounts] || 0;
+    const subtotal = editingOrder.line_items.reduce((sum, item) => sum + (item.total_price), 0);
+    const discountAmount = subtotal * discount;
+    const newTotal = subtotal - discountAmount;
+
+    const updatedOrder = {
+      ...editingOrder,
+      total_amount: newTotal,
+      amount_paid: editingOrder.amount_paid // Original amount paid
+    };
+
+    setOrders(orders.map(order => order.id === editingOrder.id ? updatedOrder : order));
+    setIsModifyDialogOpen(false);
+    setEditingOrder(null);
   };
 
   const markAsNewItemNeeded = (orderId: string, itemId: string) => {
@@ -592,67 +705,164 @@ export function FulfillmentPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {orders.map((order) => (
-                    <Card key={order.id} className="p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h4 className="font-medium">{order.order_number}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {order.customer_name} • {order.customer_email}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(order.order_date).toLocaleDateString()} • ${order.total_amount}
-                          </p>
+                    <Card key={order.id} className="p-6">
+                      {/* Order Header */}
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-4">
+                            <h4 className="text-lg font-semibold">{order.order_number}</h4>
+                            <Badge variant="outline">{order.wine_club_plan}</Badge>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="font-medium">{order.customer_name}</p>
+                              <p className="text-muted-foreground">{order.customer_email}</p>
+                              <p className="text-muted-foreground">{order.customer_phone}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Address:</p>
+                              <p className="text-muted-foreground">{order.address_line_1}</p>
+                              {order.address_line_2 && (
+                                <p className="text-muted-foreground">{order.address_line_2}</p>
+                              )}
+                              <p className="text-muted-foreground">
+                                {order.city}, {order.state} {order.zip}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-6 text-sm">
+                            <div>
+                              <span className="font-medium">Order Date:</span> {new Date(order.order_date).toLocaleDateString()}
+                            </div>
+                            <div>
+                              <span className="font-medium">Date Paid:</span> {new Date(order.date_paid).toLocaleDateString()}
+                            </div>
+                            <div>
+                              <span className="font-medium">Amount Paid:</span> ${order.amount_paid}
+                            </div>
+                            <div>
+                              <span className="font-medium">Order Total:</span> ${order.total_amount}
+                            </div>
+                          </div>
                         </div>
                         <div className="flex space-x-2">
                           <Button
-                            variant="outline"
+                            variant={isOrderReadyToShip(order) ? "default" : "outline"}
                             size="sm"
-                            onClick={() => markAsPicked(order.id)}
+                            onClick={() => markOrderAsReadyToShip(order.id)}
+                            disabled={!isOrderReadyToShip(order)}
+                            className={isOrderReadyToShip(order) ? "bg-green-600 hover:bg-green-700" : ""}
                           >
                             <CheckCircle className="h-4 w-4 mr-2" />
-                            Mark Picked
+                            Ready to Ship
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openModifyOrderDialog(order)}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Modify Order
                           </Button>
                         </div>
                       </div>
                       
+                      {/* Line Items Table */}
                       <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead>Wine</TableHead>
                             <TableHead>Category</TableHead>
                             <TableHead>Quantity</TableHead>
-                            <TableHead>Price</TableHead>
-                            <TableHead>Stock</TableHead>
+                            <TableHead>Unit Price</TableHead>
+                            <TableHead>Total Price</TableHead>
+                            <TableHead>Status</TableHead>
                             <TableHead>Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {order.line_items.map((item) => (
-                            <TableRow key={item.id}>
+                            <TableRow key={item.id} className={item.status === 'removed' ? 'opacity-50' : ''}>
                               <TableCell className="font-medium">{item.name}</TableCell>
                               <TableCell>
                                 <Badge variant="outline">{item.category}</Badge>
                               </TableCell>
                               <TableCell>{item.quantity}</TableCell>
+                              <TableCell>${item.unit_price}</TableCell>
                               <TableCell>${item.total_price}</TableCell>
                               <TableCell>
-                                <Badge variant={item.in_stock ? "default" : "destructive"}>
-                                  {item.in_stock ? "In Stock" : "Out of Stock"}
+                                <Badge 
+                                  variant={
+                                    item.status === 'picked' ? 'default' : 
+                                    item.status === 'out_of_stock' ? 'destructive' : 
+                                    item.status === 'removed' ? 'secondary' : 'outline'
+                                  }
+                                  className={
+                                    item.status === 'picked' ? 'bg-green-600 hover:bg-green-700' : 
+                                    item.status === 'out_of_stock' ? 'bg-red-600 hover:bg-red-700' : ''
+                                  }
+                                >
+                                  {item.status === 'picked' ? 'Picked' :
+                                   item.status === 'out_of_stock' ? 'Out of Stock' :
+                                   item.status === 'removed' ? 'Removed' : 'Pending'}
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                {!item.in_stock && (
+                                <div className="flex space-x-1">
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => markAsNewItemNeeded(order.id, item.id)}
+                                    onClick={() => markItemAsPicked(order.id, item.id)}
+                                    disabled={item.status === 'picked' || item.status === 'removed'}
+                                    className={item.status === 'picked' ? 'bg-green-100 border-green-300' : ''}
                                   >
-                                    <AlertTriangle className="h-4 w-4 mr-2" />
-                                    New Item Needed
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    Picked
                                   </Button>
-                                )}
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => markItemAsOutOfStock(order.id, item.id)}
+                                    disabled={item.status === 'out_of_stock' || item.status === 'removed'}
+                                    className={item.status === 'out_of_stock' ? 'bg-red-100 border-red-300' : ''}
+                                  >
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    Out of Stock
+                                  </Button>
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={item.status === 'removed'}
+                                        className={item.status === 'removed' ? 'bg-gray-100 border-gray-300' : ''}
+                                      >
+                                        <Minus className="h-3 w-3 mr-1" />
+                                        Remove
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Remove Item</DialogTitle>
+                                        <DialogDescription>
+                                          Are you sure you want to remove "{item.name}" from this order?
+                                          This action cannot be undone.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <DialogFooter>
+                                        <Button variant="outline">Cancel</Button>
+                                        <Button 
+                                          variant="destructive"
+                                          onClick={() => removeItem(order.id, item.id)}
+                                        >
+                                          Remove Item
+                                        </Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -949,6 +1159,215 @@ export function FulfillmentPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modify Order Dialog */}
+      <Dialog open={isModifyDialogOpen} onOpenChange={setIsModifyDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Modify Order - {editingOrder?.order_number}</DialogTitle>
+            <DialogDescription>
+              Edit quantities, add/remove wines, and recalculate pricing with plan discounts
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingOrder && (
+            <div className="space-y-6">
+              {/* Order Summary */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 className="font-medium mb-2">Customer Information</h4>
+                  <p className="text-sm">{editingOrder.customer_name}</p>
+                  <p className="text-sm text-muted-foreground">{editingOrder.customer_email}</p>
+                  <p className="text-sm text-muted-foreground">{editingOrder.customer_phone}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Plan & Payment</h4>
+                  <p className="text-sm">Plan: {editingOrder.wine_club_plan}</p>
+                  <p className="text-sm text-muted-foreground">Amount Paid: ${editingOrder.amount_paid}</p>
+                  <p className="text-sm text-muted-foreground">Date Paid: {new Date(editingOrder.date_paid).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              {/* Editable Line Items */}
+              <div>
+                <h4 className="font-medium mb-3">Line Items</h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Wine</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Unit Price</TableHead>
+                      <TableHead>Total Price</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {editingOrder.line_items.map((item, index) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{item.category}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const newItems = [...editingOrder.line_items];
+                                if (newItems[index].quantity > 1) {
+                                  newItems[index].quantity -= 1;
+                                  newItems[index].total_price = newItems[index].quantity * newItems[index].unit_price;
+                                  setEditingOrder({ ...editingOrder, line_items: newItems });
+                                }
+                              }}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-12 text-center">{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const newItems = [...editingOrder.line_items];
+                                newItems[index].quantity += 1;
+                                newItems[index].total_price = newItems[index].quantity * newItems[index].unit_price;
+                                setEditingOrder({ ...editingOrder, line_items: newItems });
+                              }}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>${item.unit_price}</TableCell>
+                        <TableCell>${item.total_price}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              const newItems = editingOrder.line_items.filter((_, i) => i !== index);
+                              setEditingOrder({ ...editingOrder, line_items: newItems });
+                            }}
+                          >
+                            <Minus className="h-3 w-3 mr-1" />
+                            Remove
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Add Wine Section */}
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-3">Add New Wine</h4>
+                <div className="flex space-x-2">
+                  <Select>
+                    <SelectTrigger className="w-64">
+                      <SelectValue placeholder="Select wine to add..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="wine_3">Pinot Noir 2022 - $32.00</SelectItem>
+                      <SelectItem value="wine_4">Merlot 2021 - $28.00</SelectItem>
+                      <SelectItem value="wine_5">Sauvignon Blanc 2023 - $26.00</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      // Add new wine logic here
+                      const newItem = {
+                        id: `item_${Date.now()}`,
+                        name: "Pinot Noir 2022",
+                        quantity: 1,
+                        unit_price: 32.00,
+                        total_price: 32.00,
+                        item_id: "wine_3",
+                        variation_id: "var_3",
+                        category: "Red Wine",
+                        in_stock: true,
+                        status: 'pending' as const
+                      };
+                      setEditingOrder({
+                        ...editingOrder,
+                        line_items: [...editingOrder.line_items, newItem]
+                      });
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Wine
+                  </Button>
+                </div>
+              </div>
+
+              {/* Pricing Summary */}
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-3">Pricing Summary</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span>${editingOrder.line_items.reduce((sum, item) => sum + item.total_price, 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Plan Discount ({editingOrder.wine_club_plan}):</span>
+                    <span className="text-green-600">
+                      -${(editingOrder.line_items.reduce((sum, item) => sum + item.total_price, 0) * 
+                        (editingOrder.wine_club_plan === 'Gold' ? 0.20 : 
+                         editingOrder.wine_club_plan === 'Silver' ? 0.15 : 
+                         editingOrder.wine_club_plan === 'Platinum' ? 0.25 : 0)).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-medium text-lg border-t pt-2">
+                    <span>New Total:</span>
+                    <span>
+                      ${(editingOrder.line_items.reduce((sum, item) => sum + item.total_price, 0) * 
+                        (1 - (editingOrder.wine_club_plan === 'Gold' ? 0.20 : 
+                               editingOrder.wine_club_plan === 'Silver' ? 0.15 : 
+                               editingOrder.wine_club_plan === 'Platinum' ? 0.25 : 0))).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Original Amount Paid:</span>
+                    <span>${editingOrder.amount_paid}</span>
+                  </div>
+                  <div className="flex justify-between font-medium">
+                    <span>Refund/Additional Charge:</span>
+                    <span className={
+                      (editingOrder.line_items.reduce((sum, item) => sum + item.total_price, 0) * 
+                       (1 - (editingOrder.wine_club_plan === 'Gold' ? 0.20 : 
+                              editingOrder.wine_club_plan === 'Silver' ? 0.15 : 
+                              editingOrder.wine_club_plan === 'Platinum' ? 0.25 : 0))) - editingOrder.amount_paid > 0 
+                        ? 'text-red-600' : 'text-green-600'
+                    }>
+                      {((editingOrder.line_items.reduce((sum, item) => sum + item.total_price, 0) * 
+                         (1 - (editingOrder.wine_club_plan === 'Gold' ? 0.20 : 
+                                editingOrder.wine_club_plan === 'Silver' ? 0.15 : 
+                                editingOrder.wine_club_plan === 'Platinum' ? 0.25 : 0))) - editingOrder.amount_paid) > 0 
+                        ? '+' : ''}
+                      ${((editingOrder.line_items.reduce((sum, item) => sum + item.total_price, 0) * 
+                          (1 - (editingOrder.wine_club_plan === 'Gold' ? 0.20 : 
+                                 editingOrder.wine_club_plan === 'Silver' ? 0.15 : 
+                                 editingOrder.wine_club_plan === 'Platinum' ? 0.25 : 0))) - editingOrder.amount_paid).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsModifyDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveModifiedOrder}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
