@@ -28,9 +28,9 @@ export function ClientProvider({ children }: { children: ReactNode }) {
                          localStorage.getItem('demo_mode') === 'true';
     
     if (isDemoAccount) {
-      // Demo account for testing
+      // Demo account for testing - Wine Club ID = 1
       const demoClub: WineClub = {
-        id: "demo", 
+        id: "1", // Demo Wine Club ID = 1
         name: "Demo Wine Club",
         email: "demo@wineclub.com"
       };
@@ -40,16 +40,15 @@ export function ClientProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }, 0);
     } else {
-      // Real wine club account (would come from auth)
-      // For now, default to wine club #1 for development
-      const defaultClub: WineClub = {
-        id: "1", // Wine club client #1
+      // Real wine club account - King Frosch Wine Club ID = 2
+      const kingFroschClub: WineClub = {
+        id: "2", // King Frosch Wine Club ID = 2
         name: "King Frosch Wine Club",
-        email: "admin@kingfrosch.com"
+        email: "klausbellinghausen@gmail.com" // Klaus is the wine club owner
       };
       
       setTimeout(() => {
-        setCurrentWineClub(defaultClub);
+        setCurrentWineClub(kingFroschClub);
         setIsLoading(false);
       }, 0);
     }

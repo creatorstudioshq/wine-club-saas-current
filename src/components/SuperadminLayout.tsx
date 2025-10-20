@@ -70,8 +70,8 @@ export function SuperadminLayout({ children, currentPage, onPageChange, onLogout
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuButton className="w-full justify-between">
                       <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      SaaS Parent Admin
+                        <Shield className="h-4 w-4" />
+                        SaaS Parent Admin
                       </div>
                       <ChevronDown className="h-4 w-4" />
                     </SidebarMenuButton>
@@ -79,11 +79,11 @@ export function SuperadminLayout({ children, currentPage, onPageChange, onLogout
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => onPageChange("dashboard")}>
                       <Building2 className="h-4 w-4 mr-2" />
-                      Switch to Wine Club Admin
+                      Wine Club Demo (ID: 1)
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onLogout}>
-                      <Settings className="h-4 w-4 mr-2" />
-                      Logout
+                    <DropdownMenuItem onClick={() => onPageChange("king-frosch")}>
+                      <Building2 className="h-4 w-4 mr-2" />
+                      King Frosch Login (ID: 2)
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

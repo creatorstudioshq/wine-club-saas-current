@@ -164,9 +164,9 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
                   Demo credentials for testing:
                 </p>
                 <div className="bg-muted/50 rounded-lg p-3 text-sm font-mono space-y-1">
-                  <p><strong>SaaS Admin:</strong> jimmy@arccom.io</p>
-                  <p><strong>Wine Club Owner:</strong> klausbellinghausen@gmail.com</p>
-                  <p><strong>Demo Account:</strong> demo@wineclub.com</p>
+                  <p><strong>SaaS Parent Admin:</strong> jimmy@arccom.io</p>
+                  <p><strong>King Frosch Owner:</strong> klausbellinghausen@gmail.com (ID: 2)</p>
+                  <p><strong>Demo Wine Club:</strong> demo@wineclub.com (ID: 1)</p>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
                   <Button
@@ -175,15 +175,15 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
                     onClick={() => onAuth('password', 'jimmy@arccom.io', 'admin123')}
                     className="w-full"
                   >
-                    Login as SaaS Admin
+                    Login as SaaS Parent Admin
                   </Button>
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => onAuth('password', 'klausbellinghausen@gmail.com', 'owner123')}
+                    onClick={() => onAuth('password', 'klausbellinghausen@gmail.com', '')}
                     className="w-full"
                   >
-                    Login as Wine Club Owner
+                    Login as King Frosch Owner (ID: 2)
                   </Button>
                   <Button
                     variant="secondary"
@@ -191,7 +191,7 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
                     onClick={() => onAuth('password', 'demo@wineclub.com', 'demo123')}
                     className="w-full"
                   >
-                    Login as Demo Account
+                    Login as Demo Wine Club (ID: 1)
                   </Button>
                 </div>
               </div>
