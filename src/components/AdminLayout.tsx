@@ -13,7 +13,10 @@ import {
   Mail,
   Shield,
   Calendar,
-  Code
+  Code,
+  ToggleLeft,
+  ToggleRight,
+  Sparkles
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "./ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -41,6 +44,19 @@ const navigation = [
 
 export function AdminLayout({ children, currentPage, onPageChange, onLogout }: AdminLayoutProps) {
   const { currentWineClub } = useClient();
+  const [isDemoMode, setIsDemoMode] = React.useState(
+    localStorage.getItem('demo_mode') === 'true' || 
+    window.location.hostname === 'localhost'
+  );
+
+  const toggleDemoMode = () => {
+    const newDemoMode = !isDemoMode;
+    setIsDemoMode(newDemoMode);
+    localStorage.setItem('demo_mode', newDemoMode.toString());
+    
+    // Reload the page to apply the new demo mode
+    window.location.reload();
+  };
 
   return (
     <SidebarProvider>
@@ -73,6 +89,37 @@ export function AdminLayout({ children, currentPage, onPageChange, onLogout }: A
           </SidebarContent>
 
           <SidebarFooter className="border-t border-sidebar-border p-4">
+            {/* Demo Mode Toggle - Admin Only */}
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-medium text-gray-700">Demo Mode</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleDemoMode}
+                  className="flex items-center space-x-1 h-6 px-2"
+                >
+                  {isDemoMode ? (
+                    <>
+                      <ToggleRight className="h-3 w-3 text-green-600" />
+                      <span className="text-xs text-green-600 font-medium">ON</span>
+                    </>
+                  ) : (
+                    <>
+                      <ToggleLeft className="h-3 w-3 text-gray-400" />
+                      <span className="text-xs text-gray-500">OFF</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {isDemoMode ? "Using demo data" : "Using real wine club data"}
+              </p>
+            </div>
+
             <SidebarMenu>
               <SidebarMenuItem>
                 <DropdownMenu>

@@ -10,9 +10,7 @@ import {
   Wine, 
   Mail, 
   Lock, 
-  Sparkles,
-  ToggleLeft,
-  ToggleRight
+  Sparkles
 } from "lucide-react";
 import { api } from "../utils/api";
 import { useClient } from "../contexts/ClientContext";
@@ -29,19 +27,6 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(
-    localStorage.getItem('demo_mode') === 'true' || 
-    window.location.hostname === 'localhost'
-  );
-
-  const toggleDemoMode = () => {
-    const newDemoMode = !isDemoMode;
-    setIsDemoMode(newDemoMode);
-    localStorage.setItem('demo_mode', newDemoMode.toString());
-    
-    // Reload the page to apply the new demo mode
-    window.location.reload();
-  };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,32 +76,6 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
             <CardDescription>
               Sign in to access your wine club management dashboard
             </CardDescription>
-            
-            {/* Demo Mode Toggle */}
-            <div className="flex items-center justify-center space-x-2 mt-4 p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Demo Mode:</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleDemoMode}
-                className="flex items-center space-x-2"
-              >
-                {isDemoMode ? (
-                  <>
-                    <ToggleRight className="h-4 w-4 text-green-600" />
-                    <span className="text-green-600 font-medium">ON</span>
-                  </>
-                ) : (
-                  <>
-                    <ToggleLeft className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-500">OFF</span>
-                  </>
-                )}
-              </Button>
-              <span className="text-xs text-gray-500">
-                {isDemoMode ? "Using demo data" : "Using real wine club data"}
-              </span>
-            </div>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="password" className="space-y-6">
@@ -133,7 +92,7 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
                     <Input
                       id="email"
                       type="email"
-                      placeholder={isDemoMode ? "demo@wineclub.com" : "admin@yourwineclub.com"}
+                      placeholder="admin@yourwineclub.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -162,19 +121,6 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
                     {isLoading ? "Signing in..." : "Sign In"}
                     <Lock className="w-4 h-4 ml-2" />
                   </Button>
-                  
-                  {isDemoMode && (
-                    <Alert className="mt-4">
-                      <Sparkles className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Demo Mode:</strong> Use any email/password to sign in with demo data.
-                        <br />
-                        <span className="text-xs text-muted-foreground">
-                          Real wine club accounts require proper authentication.
-                        </span>
-                      </AlertDescription>
-                    </Alert>
-                  )}
                 </form>
               </TabsContent>
 
