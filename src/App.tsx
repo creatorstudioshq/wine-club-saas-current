@@ -17,6 +17,8 @@ import { MarketingIntegration } from "./components/MarketingIntegration";
 import { ShippingSchedulePage } from "./components/ShippingSchedulePage";
 import { EmbeddableSignupPage } from "./components/EmbeddableSignupPage";
 import { AuthPage } from "./components/AuthPage";
+import { AuthCallback } from "./components/AuthCallback";
+import { ResetPassword } from "./components/ResetPassword";
 import { EmbeddedSignup } from "./components/EmbeddedSignup";
 import { WineSelectionReview } from "./components/customer/WineSelectionReview";
 import { BonusUpsell } from "./components/customer/BonusUpsell";
@@ -29,7 +31,7 @@ import { api } from "./utils/api";
 type AdminPage = "dashboard" | "members" | "shipments" | "fulfillment" | "square-config" | "superadmin" | "marketing" | "shipping-schedule" | "embeddable-signup";
 type SuperadminPage = "saas-dashboard" | "organizations" | "users" | "billing" | "settings";
 type CustomerStep = "wine-selection" | "upsell" | "delivery" | "payment" | "preferences" | "payment-collection";
-type AppMode = "admin" | "superadmin" | "customer" | "auth" | "signup";
+type AppMode = "admin" | "superadmin" | "customer" | "auth" | "signup" | "auth-callback" | "reset-password";
 
 export default function App() {
   return (
@@ -303,6 +305,27 @@ function AppContent() {
   };
 
   // Auth flow
+  // Handle URL-based auth routes
+  useEffect(() => {
+    const path = window.location.pathname;
+    
+    if (path === '/auth/callback') {
+      setAppMode('auth-callback');
+    } else if (path === '/auth/reset-password') {
+      setAppMode('reset-password');
+    }
+  }, []);
+
+  // Auth callback page
+  if (appMode === "auth-callback") {
+    return <AuthCallback />;
+  }
+
+  // Reset password page
+  if (appMode === "reset-password") {
+    return <ResetPassword />;
+  }
+
   if (appMode === "auth") {
     return (
       <>

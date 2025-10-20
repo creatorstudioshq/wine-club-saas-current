@@ -347,18 +347,47 @@ export const api = {
   },
 
   // Email Services (still use Edge Function for this complex operation)
-  async sendMagicLink(email: string, wineClubId: string) {
-    const BASE_URL = `https://aammkgdhfmkukpqkdduj.supabase.co/functions/v1/make-server-9d538b9c`;
-    const res = await fetch(`${BASE_URL}/email/magic-link`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${supabaseAnonKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, wine_club_id: wineClubId }),
+  // Authentication
+  async signInWithPassword(email: string, password: string) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
-    if (!res.ok) throw new Error(`Magic link send failed: ${res.status}`);
-    return res.json();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async sendMagicLink(email: string) {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async resetPassword(email: string) {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+
+  async getCurrentUser() {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user;
   },
 
   async sendWelcomeEmail(email: string, wineClubId: string) {

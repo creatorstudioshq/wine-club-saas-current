@@ -32,11 +32,16 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await api.signInWithPassword(email, password);
       onAuth('password', email, password);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      // Still call onAuth to show error message
+      onAuth('password', email, password);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -44,13 +49,30 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
     setIsLoading(true);
     
     try {
-      await api.sendMagicLink(email, currentWineClub?.id || "");
-      
+      await api.sendMagicLink(email);
       onAuth('magic-link', email);
     } catch (error: any) {
       console.error('Magic link error:', error);
       // Still call onAuth to show success message
       onAuth('magic-link', email);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      alert('Please enter your email address first');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      await api.resetPassword(email);
+      alert('Password reset email sent! Check your inbox.');
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      alert('Failed to send password reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -121,6 +143,18 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
                     {isLoading ? "Signing in..." : "Sign In"}
                     <Lock className="w-4 h-4 ml-2" />
                   </Button>
+                  
+                  <div className="text-center">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={handleForgotPassword}
+                      disabled={isLoading}
+                      className="text-sm text-muted-foreground hover:text-primary"
+                    >
+                      Forgot your password?
+                    </Button>
+                  </div>
                 </form>
               </TabsContent>
 
@@ -161,39 +195,8 @@ export function AuthPage({ onAuth, onSignupClick, error, successMessage }: AuthP
             <div className="mt-6 pt-6 border-t">
               <div className="text-center space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Demo credentials for testing:
+                  Need help? Contact your wine club administrator.
                 </p>
-                <div className="bg-muted/50 rounded-lg p-3 text-sm font-mono space-y-1">
-                  <p><strong>SaaS Parent Admin:</strong> jimmy@arccom.io</p>
-                  <p><strong>King Frosch Owner:</strong> klausbellinghausen@gmail.com (ID: 2)</p>
-                  <p><strong>Demo Wine Club:</strong> demo@wineclub.com (ID: 1)</p>
-                </div>
-                <div className="grid grid-cols-1 gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onAuth('password', 'jimmy@arccom.io', 'admin123')}
-                    className="w-full"
-                  >
-                    Login as SaaS Parent Admin
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onAuth('password', 'klausbellinghausen@gmail.com', '')}
-                    className="w-full"
-                  >
-                    Login as King Frosch Owner (ID: 2)
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onAuth('password', 'demo@wineclub.com', 'demo123')}
-                    className="w-full"
-                  >
-                    Login as Demo Wine Club (ID: 1)
-                  </Button>
-                </div>
               </div>
             </div>
           </CardContent>
